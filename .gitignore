@@ -1,0 +1,6 @@
+.env*
+id_*
+ollama/models/*
+qdrant/qdrant_data/*
+isunfa/app/*
+aich/app/*
