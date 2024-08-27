@@ -1,5 +1,3 @@
-version: '3.8'
-
 services:
   nginx:
     image: nginx:1.26.2
@@ -76,7 +74,7 @@ services:
     deploy:
       resources:
         limits:
-          memory: 1G
+          memory: 2G
   
   ollama:
     image: ollama/ollama:0.3.6
