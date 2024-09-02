@@ -1,0 +1,18 @@
+services:
+  ipfs:
+    image: ipfs/kubo:v0.29.0
+    container_name: ipfs_host
+    volumes:
+      - ./export:/export
+      - ./ipfs_data:/data/ipfs
+      - ./:/scripts  # 当前目录挂载到 /scripts
+    ports:
+      - '4001:4001'
+      - '4001:4001/udp'
+      - '127.0.0.1:8080:8080'
+      - '127.0.0.1:5001:5001'
+    entrypoint: ["/bin/sh", "-c"]
+    env_file:
+      - .env.ipfs
+    command: >
+      "chmod +x /scripts/ipfs-start.sh && /scripts/ipfs-start.sh"

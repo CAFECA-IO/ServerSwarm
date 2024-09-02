@@ -1,8 +1,12 @@
 .env*
 # Info: (20240827 - Jacky) Do not ignore specific sample files, such as .env.aich.sample
 !.env*.sample
-id_*
+isunfa/ollama/id_*
 isunfa/ollama/models
 isunfa/qdrant/qdrant_data
 isunfa/isunfa/app
 isunfa/aich/app
+
+# Info: (20240827 - Jacky) Ignore below files in the ipfs folder
+ipfs/ipfs_data
+ipfs/export
