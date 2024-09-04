@@ -10,3 +10,7 @@ isunfa/aich/app
 # Info: (20240827 - Jacky) Ignore below files in the ipfs folder
 ipfs/ipfs_data
 ipfs/export
+
+## Ignore npm related build files
+node_modules
+package-lock.json

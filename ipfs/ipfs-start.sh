@@ -15,7 +15,7 @@ cat <<EOF > /data/ipfs/swarm.key
 $SWARM_KEY
 EOF
 
-echo "File created successfully at /data/ipfs/swarm.key"
+echo "swarm.key created successfully at /data/ipfs/swarm.key"
 
 # Info: (20240902 - Jacky) Clean up the bootstrap list
 ipfs bootstrap rm --all
@@ -28,7 +28,6 @@ fi
 
 # Info: (20240902 - Jacky) Add the bootstrap nodes
 for node in $BOOTSTRAP_NODES; do
-  echo "Adding bootstrap node: $node"
   ipfs bootstrap add "$node"
 done
 
