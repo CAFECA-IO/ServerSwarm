@@ -1,0 +1,8 @@
+.env*
+# Info: (20240827 - Jacky) Do not ignore specific sample files, such as .env.aich.sample
+!.env*.sample
+id_*
+isunfa/ollama/models
+isunfa/qdrant/qdrant_data
+isunfa/isunfa/app
+isunfa/aich/app
