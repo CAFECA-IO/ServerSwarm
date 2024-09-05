@@ -6,6 +6,7 @@ isunfa/ollama/models
 isunfa/qdrant/qdrant_data
 isunfa/isunfa/app
 isunfa/aich/app
+isunfa/faith/app
 
 # Info: (20240827 - Jacky) Ignore below files in the ipfs folder
 ipfs/ipfs_data
