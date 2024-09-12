@@ -12,6 +12,11 @@ isunfa/faith/app
 ipfs/ipfs_data
 ipfs/export
 
+# Info: (20240827 - Jacky) Ignore below files in the TideBit-Defi folder
+TideBit-DeFi/TideBit-DeFi/app
+TideBit-DeFi/tbd-backend/app
+TideBit-DeFi/mongodb/data
+
 ## Ignore npm related build files
 node_modules
 package-lock.json
