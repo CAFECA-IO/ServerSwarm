@@ -6,16 +6,8 @@ services:
       - "443:443"
     volumes:
       - ./nginx/templates:/etc/nginx/templates 
-      # - ./nginx/nginx.conf:/etc/nginx/nginx.conf
-    environment:
-      - TBD_BACKEND_SERVER_NAME=${TBD_BACKEND_SERVER_NAME}
-      - TIDEBIT_DEFI_SERVER_NAME=${TIDEBIT_DEFI_SERVER_NAME}
-      - AUTO_TRADE_SERVER_NAME=${AUTO_TRADE_SERVER_NAME}
-      - PUSHER_SERVER_NAME=${PUSHER_SERVER_NAME}
-      - TBD_BACKEND_PORT=${TBD_BACKEND_PORT}
-      - TIDEBIT_DEFI_PORT=${TIDEBIT_DEFI_PORT}
-      - AUTO_TRADE_PORT=${AUTO_TRADE_PORT}
-      - PUSHER_PORT=${PUSHER_PORT}
+    env_file:
+      - ./nginx/.env.nginx
     depends_on:
       - tidebit-defi-backend
       - tidebit-defi-frontend
@@ -28,9 +20,9 @@ services:
   tidebit-defi-frontend:
     image: node:18
     volumes:
-      - ./TideBit-DeFi:/TideBit-DeFi
+      - ./tidebit-defi:/tidebit-defi
     env_file:
-      - ./TideBit-DeFi/.env.TideBit-DeFi
+      - ./tidebit-defi/.env.tidebit-defi
     environment:
       - PORT=${TIDEBIT_DEFI_PORT}
     expose:
@@ -38,7 +30,7 @@ services:
     depends_on:
      - tidebit-defi-backend
     command: >
-      sh -c "chmod +x /TideBit-DeFi/TideBit-DeFi-start.sh && /TideBit-DeFi/TideBit-DeFi-start.sh"
+      sh -c "chmod +x /tidebit-defi/tidebit-defi-start.sh && /tidebit-defi/tidebit-defi-start.sh"
     deploy:
       resources:
         limits:
@@ -86,8 +78,6 @@ services:
       - PORT=${PUSHER_PORT}
     expose:
       - "${PUSHER_PORT}"
-    ports:
-      - "${PUSHER_PORT}:${PUSHER_PORT}"
     depends_on:
       - mongodb
     deploy:

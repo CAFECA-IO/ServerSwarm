@@ -6,9 +6,9 @@ git clone https://github.com/CAFECA-IO/auto-trade.git /auto-trade/app || (cd /au
 # Info: (20240905 - Jacky) 進入 /TideBit-DeFi/app 目錄並安裝依賴（假設是 Node.js 應用）
 cd /auto-trade/app 
 
-# Info: (20240910 - Jacky) 確保存在 dev 分支並檢出
+# Info: (20240910 - Jacky) 確保存在 develop 分支並檢出
 git fetch origin
-git checkout feat/extract_api || git checkout -b feat/extract_api origin/feat/extract_api
+git checkout develop || git checkout -b develop origin/develop
 
 npm install
 

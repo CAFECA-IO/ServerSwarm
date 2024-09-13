@@ -1,0 +1,49 @@
+# Info: (20240827 - Jacky) 伺服器設定
+include /etc/nginx/mime.types;
+default_type application/octet-stream;
+log_format main '$remote_addr - $remote_user [$time_local] "$request" '
+                    '$status $body_bytes_sent "$http_referer" '
+                    '"$http_user_agent" "$http_x_forwarded_for"';
+access_log /var/log/nginx/access.log main;
+
+server {
+    listen ${NGINX_PORT};
+    server_name ${ISUNFA_SERVER_NAME};
+
+    location / {
+        proxy_pass ${ISUNFA_DOCKER_URL};
+        proxy_set_header Host $host;
+        proxy_set_header X-Real-IP $remote_addr;
+        proxy_set_header X-Forwarded-For $proxy_add_x_forwarded_for;
+        proxy_set_header X-Forwarded-Proto $scheme;
+        proxy_cache_bypass $http_upgrade;
+    }
+}
+
+server {
+    listen ${NGINX_PORT};
+    server_name ${AICH_SERVER_NAME};
+
+    location / {
+        proxy_pass ${AICH_DOCKER_URL};
+        proxy_buffering off;
+        proxy_set_header Host $host;
+        proxy_set_header X-Real-IP $remote_addr;
+        proxy_set_header X-Forwarded-For $proxy_add_x_forwarded_for;
+        proxy_set_header X-Forwarded-Proto $scheme;
+        proxy_cache_bypass $http_upgrade;
+    }
+}
+
+server {
+    listen ${NGINX_PORT};
+    server_name ${FAITH_SERVER_NAME};
+    location / {
+        proxy_pass ${FAITH_DOCKER_URL};
+        proxy_set_header Host $host;
+        proxy_set_header X-Real-IP $remote_addr;
+        proxy_set_header X-Forwarded-For $proxy_add_x_forwarded_for;
+        proxy_set_header X-Forwarded-Proto $scheme;
+        proxy_cache_bypass $http_upgrade;
+    }
+}

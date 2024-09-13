@@ -13,9 +13,9 @@ ipfs/ipfs_data
 ipfs/export
 
 # Info: (20240827 - Jacky) Ignore below files in the TideBit-Defi folder
-TideBit-DeFi/TideBit-DeFi/app
-TideBit-DeFi/tbd-backend/app
-TideBit-DeFi/mongodb/data
+tidebit-defi/tidebit-defi/app
+tidebit-defi/tbd-backend/app
+tidebit-defi/mongodb/data
 
 ## Ignore npm related build files
 node_modules
