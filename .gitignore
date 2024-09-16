@@ -17,6 +17,6 @@ tidebit-defi/tidebit-defi/app
 tidebit-defi/tbd-backend/app
 tidebit-defi/mongodb/data
 
-## Ignore npm related build files
+# Info: (20240916 - Jacky) Ignore npm related build files
 node_modules
 package-lock.json
