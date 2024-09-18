@@ -46,7 +46,7 @@ services:
     deploy:
       resources:
         limits:
-          memory: 512M
+          memory: 1G
   
   baifa-web-crawling-bolt:
     image: node:${NODEJS_TAG}
@@ -61,7 +61,7 @@ services:
     deploy:
       resources:
         limits:
-          memory: 512M
+          memory: 1G
           
   postgres:
     image: postgres:${POSTGRES_TAG}
