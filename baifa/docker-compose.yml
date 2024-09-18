@@ -1,0 +1,80 @@
+services:
+  nginx:
+    image: nginx:${NGINX_TAG}
+    ports:
+      - "80:80"
+      - "443:443"
+    volumes:
+      - ./nginx/templates:/etc/nginx/templates 
+    env_file:
+      - ./nginx/.env.nginx
+    depends_on:
+      - baifa
+      - baifa-web-crawling-isuncoin
+      - baifa-web-crawling-bolt
+    deploy:
+      resources:
+        limits:
+          memory: 256M
+  baifa:
+    image: node:${NODEJS_TAG}
+    volumes:
+      - ./baifa:/baifa
+    command: >
+      sh -c "chmod +x /baifa/baifa-start.sh && /baifa/baifa-start.sh"
+    env_file:
+      - ./baifa/.env.baifa
+    expose:
+      - "${BAIFA_PORT}"
+    depends_on:
+      - postgres
+    deploy:
+      resources:
+        limits:
+          memory: 1G
+
+  baifa-web-crawling-isuncoin:
+    image: node:${NODEJS_TAG}
+    volumes:
+      - ./baifa-web-crawling:/baifa-web-crawling
+    command: >
+      sh -c "chmod +x /baifa-web-crawling/baifa-web-crawling-start.sh && /baifa-web-crawling/baifa-web-crawling-start.sh"
+    env_file:
+      - ./baifa-web-crawling/.env.baifa-web-crawling.isuncoin
+    depends_on:
+      - postgres
+    deploy:
+      resources:
+        limits:
+          memory: 1G
+  
+  baifa-web-crawling-bolt:
+    image: node:${NODEJS_TAG}
+    volumes:
+      - ./baifa-web-crawling:/baifa-web-crawling
+    command: >
+      sh -c "chmod +x /baifa-web-crawling/baifa-web-crawling-start.sh && /baifa-web-crawling/baifa-web-crawling-start.sh"
+    env_file:
+      - ./baifa-web-crawling/.env.baifa-web-crawling.bolt
+    depends_on:
+      - postgres
+    deploy:
+      resources:
+        limits:
+          memory: 1G
+          
+  postgres:
+    image: postgres:${POSTGRES_TAG}
+    restart: always
+    volumes:
+      - ./postgres/data:/var/lib/postgresql/data
+    environment:
+      POSTGRES_PASSWORD: example
+    expose:
+      - "${POSTGRES_PORT}"
+    ports:
+      - "${POSTGRES_PORT}:${POSTGRES_PORT}"
+    deploy:
+      resources:
+        limits:
+          memory: 256M

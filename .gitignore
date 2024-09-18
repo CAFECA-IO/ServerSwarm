@@ -17,6 +17,11 @@ tidebit-defi/tidebit-defi/app
 tidebit-defi/tbd-backend/app
 tidebit-defi/mongodb/data
 
-## Ignore npm related build files
+# Info: (20240827 - Jacky) Ignore below files in the baifa folder
+
+baifa/baifa/app
+baifa/baifa-web-crawling/app
+
+# Info: (20240916 - Jacky) Ignore npm related build files
 node_modules
 package-lock.json
