@@ -1,5 +1,18 @@
 在 linux 主機上透過 docker compose 運行 isunfa 整個服務
 
+- [確保主機有安裝 git, docker](#確保主機有安裝-git-docker)
+  - [安裝 git](#安裝-git)
+  - [安裝 docker](#安裝-docker)
+- [git clone repo](#git-clone-repo)
+- [複製每個 isunfa/ 底下的 .env.xxx.sample](#複製每個-isunfa-底下的-envxxxsample)
+- [修改 .env 內容](#修改-env-內容)
+  - [修改 .env.isunfa](#修改-envisunfa)
+  - [修改 .env.faith](#修改-envfaith)
+  - [修改 .env.aich](#修改-envaich)
+  - [修改 .env.nginx](#修改-envnginx)
+- [設置 domain](#設置-domain)
+- [啟動 docker compose](#啟動-docker-compose)
+
 # 確保主機有安裝 git, docker
 
 ## 安裝 git
