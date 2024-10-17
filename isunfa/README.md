@@ -6,12 +6,14 @@
 - [git clone repo](#git-clone-repo)
 - [複製每個 isunfa/ 底下的 .env.xxx.sample](#複製每個-isunfa-底下的-envxxxsample)
 - [修改 .env 內容](#修改-env-內容)
-  - [修改 .env.isunfa](#修改-envisunfa)
-  - [修改 .env.faith](#修改-envfaith)
-  - [修改 .env.aich](#修改-envaich)
-  - [修改 .env.nginx](#修改-envnginx)
+  - [.env.isunfa 特別注意的欄位](#envisunfa-特別注意的欄位)
+  - [.env.faith 特別注意的欄位](#envfaith-特別注意的欄位)
+  - [.env.aich 特別注意的欄位](#envaich-特別注意的欄位)
+  - [.env.nginx 特別注意的欄位](#envnginx-特別注意的欄位)
 - [設置 domain](#設置-domain)
+- [自動更新 docker container 裡的服務](#自動更新-docker-container-裡的服務)
 - [啟動 docker compose](#啟動-docker-compose)
+  - [其他相關指令](#其他相關指令)
 
 # 確保主機有安裝 git, docker
 
@@ -92,7 +94,7 @@ cp isunfa/postgres/.env.postgres.sample isunfa/postgres/.env.postgres
 
 除了個別填寫 .env 欄位之外，以下變數的修改需要特別注意
 
-## 修改 .env.isunfa
+## .env.isunfa 特別注意的欄位
 
 - 其中 `DATABASE_URL` 會用到 `.env.postgres` ，為 `postgresql://${POSTGRES_USER}:${POSTGRES_PASSWORD}@${HOST_IP}:${POSTGRES_PORT}/${POSTGRES_DB}`
 
@@ -102,20 +104,20 @@ AICH_URI = https://<AICH_DOMAIN>
 DATABASE_URL = <DATABASE_URL>
 ```
 
-## 修改 .env.faith
+## .env.faith 特別注意的欄位
 
 ```
 NEXT_PUBLIC_AICH_URL=https://<AICH_DOMAIN>
 ```
 
-## 修改 .env.aich
+## .env.aich 特別注意的欄位
 
 ```
 OLLAMA_HOST=http://ollama:11434
 QDRANT_HOST=http://qdrant:6333
 ```
 
-## 修改 .env.nginx
+## .env.nginx 特別注意的欄位
 
 ```
 ISUNFA_SERVER_NAME=<ISUNFA_DOMAIN>
@@ -183,8 +185,65 @@ FAITH_SERVER_NAME=faith.isunfa.com
 
    如果設置正確，會顯示設置的 IP 地址。
 
+# 自動更新 docker container 裡的服務
+
+透過 ofelia 在 docker container 裡執行 cron job，依照 GitHub branch 自動更新 docker container 的服務
+
+1. 填寫自動更新腳本的參數
+
+   - 填寫 `isunfa/.env.isunfa`, `faith/.env.faith`, `aich/.env.aich` 用於自動更新(check-update.sh)的參數
+
+2. 填寫 config.ini
+
+   - 填寫 `ofelia/config.ini` 用於自動更新的參數
+
 # 啟動 docker compose
 
 ```
 docker compose up -d
 ```
+
+## 其他相關指令
+
+- 查看每個容器使用資源的情況
+  - `docker stats`
+- 暫停所有在運行的容器之後再徹底刪掉所有容器
+
+  ```bash
+  docker stop $(docker ps -q)
+
+  docker rm $(docker ps -a -q)
+  ```
+
+- 重啟 docker
+  ```bash
+  docker compose down
+  docker compose up -d
+  ```
+- 查看 docker container name and id
+  ```bash
+  docker ps
+  ```
+- 進到 docker container 內部
+
+  ```bash
+  # 用 /bin/bash 進入
+  docker exec -it <CONTAINER_ID> /bin/bash
+
+  # ofelia 或使用 Alpine 輕量 Linux 的 container 需使用 /bin/sh 進入
+  docker exec -it <CONTAINER_ID> /bin/sh
+
+  # 用 docker ps 裡的 container name 進入
+  docker exec -it <CONTAINER_NAME> <COMMAND>
+
+  # 用 docker-compose 裡的 container name 進入
+  docker-compose exec <CONTAINER_NAME> <COMMAND>
+
+  # 例如 ofelia
+  docker-compose exec ofelia sh
+  docker exec -it ofelia sh
+
+  # 例如 isunfa
+  docker exec -it isunfa-isunfa-1 /bin/bash
+  docker-compose exec -it isunfa /bin/bash
+  ```
