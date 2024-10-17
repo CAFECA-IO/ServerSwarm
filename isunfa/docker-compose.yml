@@ -30,12 +30,20 @@ services:
     expose:
       - "${ISUNFA_PORT}"
     depends_on:
-      - aich
-      - postgres
+      aich:
+        condition: service_healthy
+      postgres:
+        condition: service_started
     deploy:
       resources:
         limits:
           memory: 4G
+    healthcheck:
+      test: ["CMD", "curl", "-f", "http://localhost:${ISUNFA_PORT}"]
+      interval: 30s
+      timeout: 20s
+      retries: 3
+      start_period: 4m
 
   faith:
     image: node:20
@@ -50,13 +58,23 @@ services:
     expose:
       - "${FAITH_PORT}"
     depends_on:
-      - aich
-      - ollama
-      - qdrant
+      aich:
+        condition: service_healthy
+      ollama:
+        condition: service_started
+      qdrant:
+        condition: service_started
     deploy:
       resources:
         limits:
           memory: 1G
+    healthcheck:
+      test: ["CMD", "curl", "-f", "http://localhost:${FAITH_PORT}"]
+      interval: 30s
+      timeout: 20s
+      retries: 3
+      start_period: 2m
+
   aich:
     image: node:20
     volumes:
@@ -76,6 +94,12 @@ services:
       resources:
         limits:
           memory: 2G
+    healthcheck:
+      test: ["CMD", "curl", "-f", "http://localhost:${AICH_PORT}"]
+      interval: 30s
+      timeout: 20s
+      retries: 3
+      start_period: 2m
 
   ollama:
     image: ollama/ollama:0.3.6
@@ -135,7 +159,7 @@ services:
           memory: 1G
 
   ofelia:
-    image: mcuadros/ofelia:latest
+    imdage: mcuadros/ofelia:latest
     container_name: ofelia
     restart: always
     volumes:
@@ -154,6 +178,10 @@ services:
         condition: service_healthy
       faith:
         condition: service_healthy
+    deploy:
+      resources:
+        limits:
+          memory: 1G
 
 configs:
   qdrant_config:
