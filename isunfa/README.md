@@ -11,7 +11,7 @@
   - [.env.aich 特別注意的欄位](#envaich-特別注意的欄位)
   - [.env.nginx 特別注意的欄位](#envnginx-特別注意的欄位)
 - [設置 domain](#設置-domain)
-- [透過 ofelia 設定自動更新](#透過-ofelia-設定自動更新)
+- [自動更新 docker container 裡的服務](#自動更新-docker-container-裡的服務)
 - [啟動 docker compose](#啟動-docker-compose)
   - [其他相關指令](#其他相關指令)
 
@@ -185,7 +185,9 @@ FAITH_SERVER_NAME=faith.isunfa.com
 
    如果設置正確，會顯示設置的 IP 地址。
 
-# 透過 ofelia 設定自動更新
+# 自動更新 docker container 裡的服務
+
+透過 ofelia 在 docker container 裡執行 cron job，依照 GitHub branch 自動更新 docker container 的服務
 
 1. 填寫自動更新腳本的參數
 
