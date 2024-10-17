@@ -159,14 +159,12 @@ services:
           memory: 1G
 
   ofelia:
-    imdage: mcuadros/ofelia:latest
+    image: mcuadros/ofelia:latest
     container_name: ofelia
     restart: always
     volumes:
       - /var/run/docker.sock:/var/run/docker.sock:ro
       - ./ofelia/config.ini:/etc/ofelia/config.ini
-    env_file:
-      - ./ofelia/.env.ofelia
     environment:
       - TZ=Asia/Taipei
     command: >
