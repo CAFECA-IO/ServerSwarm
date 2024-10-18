@@ -21,6 +21,7 @@ services:
     image: node:20
     volumes:
       - ./isunfa:/isunfa
+      - ${HOME}/isunfa:${HOME}/isunfa
     command: >
       sh -c "chmod +x /isunfa/isunfa-start.sh && /isunfa/isunfa-start.sh"
     env_file:

@@ -4,7 +4,7 @@
 # 如果目錄已經存在，則會失敗並執行後面的命令
 # Info: (20240821 - Jacky) Should use v0.8.0 分支
 # git clone https://github.com/CAFECA-IO/AICH.git -b v0.8.0 --single-branch /aich/app || (cd /isunfa/app && git pull origin main)
-git clone https://github.com/CAFECA-IO/FAITH.git /faith/app || (cd /faith/app && git pull origin $TARGET_BRANCH)
+(git clone https://github.com/CAFECA-IO/FAITH.git /faith/app && git checkout $TARGET_BRANCH) || (cd /faith/app && git pull origin $TARGET_BRANCH)
 # Info: (20240821 - Jacky) 進入 /isunfa/app 目錄並安裝依賴（假設是 Node.js 應用）
 cd /faith/app && npm install
 
