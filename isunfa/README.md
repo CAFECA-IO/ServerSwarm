@@ -83,6 +83,7 @@ git checkout develop
 # 複製每個 isunfa/ 底下的 .env.xxx.sample
 
 ```
+cp isunfa/.env.sample isunfa/.env
 cp isunfa/isunfa/.env.isunfa.sample isunfa/isunfa/.env.isunfa
 cp isunfa/faith/.env.faith.sample isunfa/faith/.env.faith
 cp isunfa/aich/.env.aich.sample isunfa/aich/.env.aich
