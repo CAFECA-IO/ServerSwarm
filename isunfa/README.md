@@ -1,9 +1,13 @@
 在 linux 主機上透過 docker compose 運行 isunfa 整個服務
 
-- [確保主機有安裝 git, docker](#確保主機有安裝-git-docker)
+- [環境建置](#環境建置)
   - [安裝 git](#安裝-git)
   - [安裝 docker](#安裝-docker)
+  - [確認 GPU 相關驅動程式是否安裝](#確認-gpu-相關驅動程式是否安裝)
+    - [Linux 主機上](#linux-主機上)
+    - [Docker 容器內部](#docker-容器內部)
 - [git clone repo](#git-clone-repo)
+  - [安裝 docker 裡的 nvidia container toolkit](#安裝-docker-裡的-nvidia-container-toolkit)
 - [複製每個 isunfa/ 底下的 .env.xxx.sample](#複製每個-isunfa-底下的-envxxxsample)
 - [修改 .env 內容](#修改-env-內容)
   - [`.env` 的階層](#env-的階層)
@@ -16,7 +20,7 @@
 - [啟動 docker compose](#啟動-docker-compose)
   - [其他相關指令](#其他相關指令)
 
-# 確保主機有安裝 git, docker
+# 環境建置
 
 ## 安裝 git
 
@@ -72,6 +76,12 @@ git --version
 - 確認 docker 是否能正常運行
   - `docker run hello-world`
 
+## 確認 GPU 相關驅動程式是否安裝
+
+### Linux 主機上
+
+### Docker 容器內部
+
 # git clone repo
 
 ```
@@ -79,6 +89,8 @@ git clone https://github.com/CAFECA-IO/ServerSwarm.git
 
 git checkout develop
 ```
+
+## 安裝 docker 裡的 nvidia container toolkit
 
 # 複製每個 isunfa/ 底下的 .env.xxx.sample
 

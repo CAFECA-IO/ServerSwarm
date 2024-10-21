@@ -1,7 +1,7 @@
 #!/bin/bash
 
 LOG_FILE="${LOG_FILE}"
-SLACK_WEBHOOK_URL="${SLACK_WEBHOOK_URL}"
+SLACK_BOT_URL="${SLACK_BOT_URL}"
 TARGET_BRANCH="${TARGET_BRANCH}"
 SERVER_NAME="${SERVER_NAME}"
 APP_PATH="${APP_PATH}"
@@ -20,7 +20,7 @@ SECONDS_START=$(date +%s)
 # Info: (20241016 - Shirley) 新增發送 Slack 訊息的函數
 send_slack_message() {
     local message="$1"
-    curl -X POST -H 'Content-type: application/json' --data "{\"text\":\"$message\"}" "$SLACK_WEBHOOK_URL"
+    curl -X POST -H 'Content-type: application/json' --data "{\"text\":\"$message\"}" "$SLACK_BOT_URL"
 }
 
 # Info: (20241016 - Shirley) 安裝 jq ，用來解析 package.json

@@ -1,4 +1,5 @@
 .env*
+**/*.log
 # Info: (20240827 - Jacky) Do not ignore specific sample files, such as .env.aich.sample
 !.env*.sample
 isunfa/ollama/id_*
