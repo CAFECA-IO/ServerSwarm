@@ -40,7 +40,7 @@ services:
         limits:
           memory: 4G
     healthcheck:
-      test: ["CMD", "curl", "-f", "http://localhost:${ISUNFA_PORT}"]
+      test: ["CMD", "curl", "-f", "http://isunfa:${ISUNFA_PORT}"]
       interval: 30s
       timeout: 20s
       retries: 3
@@ -70,7 +70,7 @@ services:
         limits:
           memory: 1G
     healthcheck:
-      test: ["CMD", "curl", "-f", "http://localhost:${FAITH_PORT}"]
+      test: ["CMD", "curl", "-f", "http://faith:${FAITH_PORT}"]
       interval: 30s
       timeout: 20s
       retries: 3
@@ -96,7 +96,7 @@ services:
         limits:
           memory: 2G
     healthcheck:
-      test: ["CMD", "curl", "-f", "http://localhost:${AICH_PORT}"]
+      test: ["CMD", "curl", "-f", "http://aich:${AICH_PORT}"]
       interval: 30s
       timeout: 20s
       retries: 3
