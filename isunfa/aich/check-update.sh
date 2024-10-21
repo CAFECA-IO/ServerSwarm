@@ -1,7 +1,7 @@
 #!/bin/bash
 
 LOG_FILE="${LOG_FILE}"
-SLACK_WEBHOOK_URL="${SLACK_WEBHOOK_URL}"
+SLACK_BOT_URL="${SLACK_BOT_URL}"
 TARGET_BRANCH="${TARGET_BRANCH}"
 SERVER_NAME="${SERVER_NAME}"
 APP_PATH="${APP_PATH}"
@@ -20,7 +20,7 @@ SECONDS_START=$(date +%s)
 # Info: (20241016 - Shirley) 新增發送 Slack 訊息的函數
 send_slack_message() {
     local message="$1"
-    curl -X POST -H 'Content-type: application/json' --data "{\"text\":\"$message\"}" "$SLACK_WEBHOOK_URL"
+    curl -X POST -H 'Content-type: application/json' --data "{\"text\":\"$message\"}" "$SLACK_BOT_URL"
 }
 
 # Info: (20241016 - Shirley) 安裝 jq ，用來解析 package.json
@@ -71,7 +71,17 @@ if [ "$LOCAL_LAST_COMMIT" != "$REMOTE_LAST_COMMIT" ]; then
     LOADING_MESSAGE="🔄 \`$SERVER_NAME\` is in the process of building\nVersion: $REMOTE_VERSION\nBranch: $TARGET_BRANCH\nDetails: <$WEB_URL|web>｜<$REPO_URL|repo>｜<$LAST_COMMIT_URL|commit>"
     send_slack_message "$LOADING_MESSAGE"
 
-    if git pull origin $TARGET_BRANCH && npm install && npm run build && pm2 restart $SERVER_NAME; then
+    # Info: (20241021 - Shirley) 處理 conflicting branch 情況
+    # git config pull.rebase false
+
+    {
+        git pull origin $TARGET_BRANCH
+        npm install
+        npm run build
+        pm2 restart $SERVER_NAME
+    } >> "$LOG_FILE" 2>&1
+
+    if [ $? -eq 0 ]; then
         echo "$(date): 更新完成" >> $LOG_FILE
         IS_SUCCESS=true
         IS_NOTIFICATION_NEEDED=true
