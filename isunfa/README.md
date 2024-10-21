@@ -177,7 +177,7 @@ sudo systemctl restart docker
 
 # 確認 docker 可以識別 nvidia gpu
 docker run --rm --gpus all nvidia/cuda:12.2.0-base-ubuntu20.04 nvidia-smi
-###
+### 應該看到類似以下資訊
 Mon Oct 21 08:42:36 2024
 +-----------------------------------------------------------------------------------------+
 | NVIDIA-SMI 560.35.03              Driver Version: 560.35.03      CUDA Version: 12.6     |
