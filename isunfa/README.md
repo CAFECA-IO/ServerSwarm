@@ -1,13 +1,10 @@
-在 linux 主機上透過 docker compose 運行 isunfa 整個服務
+本文說明如何在 linux 主機上透過 docker compose 運行 isunfa 集群
 
 - [環境建置](#環境建置)
   - [安裝 git](#安裝-git)
   - [安裝 docker](#安裝-docker)
   - [確認 GPU 相關驅動程式是否安裝](#確認-gpu-相關驅動程式是否安裝)
-    - [Linux 主機上](#linux-主機上)
-    - [Docker 容器內部](#docker-容器內部)
 - [git clone repo](#git-clone-repo)
-  - [安裝 docker 裡的 nvidia container toolkit](#安裝-docker-裡的-nvidia-container-toolkit)
 - [複製每個 isunfa/ 底下的 .env.xxx.sample](#複製每個-isunfa-底下的-envxxxsample)
 - [修改 .env 內容](#修改-env-內容)
   - [`.env` 的階層](#env-的階層)
@@ -24,18 +21,26 @@
 
 ## 安裝 git
 
-```
-sudo apt update
-sudo apt install git
-```
-
 確認 git 是否成功安裝
 
 ```
 git --version
 ```
 
+如果沒有安裝的話，可以透過以下指令安裝
+
+```
+sudo apt update
+sudo apt install git
+```
+
 ## 安裝 docker
+
+- 確認 docker 是否成功安裝
+
+  ```
+  docker --version
+  ```
 
 - 查看 Docker 運行狀態跟位置
   - `systemctl status docker`
@@ -69,8 +74,6 @@ git --version
   sudo apt-get update
 
   sudo apt-get install docker-ce docker-ce-cli containerd.io docker-buildx-plugin docker-compose-plugin
-
-  docker --version
   ```
 
 - 確認 docker 是否能正常運行
@@ -78,9 +81,124 @@ git --version
 
 ## 確認 GPU 相關驅動程式是否安裝
 
-### Linux 主機上
+- 先確認是否有 Nvidia GPU，如果沒有的話，就取消 docker-compose.yml 裡 ollama 的 gpu，如果有的話，則需要確認 Linux 主機跟 docker 的相關設置
 
-### Docker 容器內部
+```bash
+sudo apt-get install -y nvidia-container-toolkit
+
+sudo systemctl restart docker
+
+docker compose down
+docker compose up -d
+
+distribution=$(. /etc/os-release;echo $ID$VERSION_ID)
+     curl -s -L https://nvidia.github.io/nvidia-docker/gpgkey | sudo apt-key add -
+     curl -s -L https://nvidia.github.io/nvidia-docker/$distribution/nvidia-docker.list | sudo tee /etc/apt/sources.list.d/nvidia-docker.list
+     sudo apt-get update
+     sudo apt-get install -y nvidia-docker2
+     sudo systemctl restart docker
+
+# 查看驅動程式狀態
+nvidia-smi
+
+# 下載 cuda 最新版 https://hub.docker.com/r/nvidia/cuda/tags
+docker pull nvidia/cuda:12.6.2-cudnn-devel-ubi9
+
+# 確認 cuda image label (映像檔標籤)
+docker run --rm --gpus all nvidia/cuda:12.6.2-cudnn-devel-ubi nvidia-smi
+
+# 檢查內核模組，如果沒有東西，代表驅動程式未載入
+lsmod | grep nvidia
+
+# 查詢 GPU 型號
+lspci | grep -i nvidia
+
+# 查看 Nvidia 驅動程式檔案路徑
+whereis nvidia
+
+# 移除現有的 nvidia 驅動程式
+sudo apt-get purge 'nvidia-*'
+sudo apt-get autoremove
+
+# 安裝 nvidia 的 PPA 並更新套件列表
+sudo add-apt-repository ppa:graphics-drivers/ppa
+sudo apt update
+
+# 安裝適合的 GPU 驅動程式版本
+sudo ubuntu-drivers autoinstall
+
+# 或者安裝特定版本
+sudo apt install nvidia-driver-530
+
+# 安裝好之後重啟系統
+sudo reboot
+
+# 查看驅動程式狀態
+nvidia-smi
+
+### 應該看到類似以下資訊
+
+Mon Oct 21 16:48:37 2024
++-----------------------------------------------------------------------------------------+
+| NVIDIA-SMI 560.35.03 Driver Version: 560.35.03 CUDA Version: 12.6 |
+|-----------------------------------------+------------------------+----------------------+
+| GPU Name Persistence-M | Bus-Id Disp.A | Volatile Uncorr. ECC |
+| Fan Temp Perf Pwr:Usage/Cap | Memory-Usage | GPU-Util Compute M. |
+| | | MIG M. |
+|=========================================+========================+======================|
+| 0 NVIDIA GeForce RTX 4060 Ti Off | 00000000:01:00.0 Off | N/A |
+| 0% 34C P8 6W / 165W | 31MiB / 16380MiB | 0% Default |
+| | | N/A |
++-----------------------------------------+------------------------+----------------------+
+
++-----------------------------------------------------------------------------------------+
+| Processes: |
+| GPU GI CI PID Type Process name GPU Memory |
+| ID ID Usage |
+|=========================================================================================|
+| 0 N/A N/A 2284 G /usr/lib/xorg/Xorg 9MiB |
+| 0 N/A N/A 3926 G /usr/bin/gnome-shell 3MiB |
++-----------------------------------------------------------------------------------------+
+
+###
+
+# 安裝 nvidia container toolkit repository
+curl -fsSL https://nvidia.github.io/libnvidia-container/gpgkey | sudo gpg --dearmor -o /usr/share/keyrings/nvidia-container-toolkit-keyring.gpg \
+  && curl -s -L https://nvidia.github.io/libnvidia-container/stable/deb/nvidia-container-toolkit.list | \
+    sed 's#deb https://#deb [signed-by=/usr/share/keyrings/nvidia-container-toolkit-keyring.gpg] https://#g' | \
+    sudo tee /etc/apt/sources.list.d/nvidia-container-toolkit.list
+
+# 安裝 nvidia container toolkit
+sudo apt-get update
+sudo apt-get install -y nvidia-docker2
+
+# 重啟 docker 服務
+sudo systemctl restart docker
+
+# 確認 docker 可以識別 nvidia gpu
+docker run --rm --gpus all nvidia/cuda:12.2.0-base-ubuntu20.04 nvidia-smi
+###
+Mon Oct 21 08:42:36 2024
++-----------------------------------------------------------------------------------------+
+| NVIDIA-SMI 560.35.03              Driver Version: 560.35.03      CUDA Version: 12.6     |
+|-----------------------------------------+------------------------+----------------------+
+| GPU  Name                 Persistence-M | Bus-Id          Disp.A | Volatile Uncorr. ECC |
+| Fan  Temp   Perf          Pwr:Usage/Cap |           Memory-Usage | GPU-Util  Compute M. |
+|                                         |                        |               MIG M. |
+|=========================================+========================+======================|
+|   0  NVIDIA GeForce RTX 4060 Ti     Off |   00000000:01:00.0 Off |                  N/A |
+|  0%   34C    P8              7W /  165W |      31MiB /  16380MiB |      0%      Default |
+|                                         |                        |                  N/A |
++-----------------------------------------+------------------------+----------------------+
+
++-----------------------------------------------------------------------------------------+
+| Processes:                                                                              |
+|  GPU   GI   CI        PID   Type   Process name                              GPU Memory |
+|        ID   ID                                                               Usage      |
+|=========================================================================================|
++-----------------------------------------------------------------------------------------+
+###
+```
 
 # git clone repo
 
@@ -89,8 +207,6 @@ git clone https://github.com/CAFECA-IO/ServerSwarm.git
 
 git checkout develop
 ```
-
-## 安裝 docker 裡的 nvidia container toolkit
 
 # 複製每個 isunfa/ 底下的 .env.xxx.sample
 
@@ -152,7 +268,7 @@ FAITH_SERVER_NAME=faith.isunfa.com
 
 # 設置 domain
 
-在其他 DNS 服務中設置域名之後，執行以下步驟
+如果已經在其他 DNS 服務中設置域名，則可跳過此步驟
 
 1. 使用管理員權限編輯 `/etc/hosts` 文件：
 
