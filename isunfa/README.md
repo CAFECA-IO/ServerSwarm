@@ -6,6 +6,7 @@
 - [git clone repo](#git-clone-repo)
 - [複製每個 isunfa/ 底下的 .env.xxx.sample](#複製每個-isunfa-底下的-envxxxsample)
 - [修改 .env 內容](#修改-env-內容)
+  - [`.env` 的階層](#env-的階層)
   - [.env.isunfa 特別注意的欄位](#envisunfa-特別注意的欄位)
   - [.env.faith 特別注意的欄位](#envfaith-特別注意的欄位)
   - [.env.aich 特別注意的欄位](#envaich-特別注意的欄位)
@@ -82,6 +83,7 @@ git checkout develop
 # 複製每個 isunfa/ 底下的 .env.xxx.sample
 
 ```
+cp isunfa/.env.sample isunfa/.env
 cp isunfa/isunfa/.env.isunfa.sample isunfa/isunfa/.env.isunfa
 cp isunfa/faith/.env.faith.sample isunfa/faith/.env.faith
 cp isunfa/aich/.env.aich.sample isunfa/aich/.env.aich
@@ -92,7 +94,10 @@ cp isunfa/postgres/.env.postgres.sample isunfa/postgres/.env.postgres
 
 # 修改 .env 內容
 
-除了個別填寫 .env 欄位之外，以下變數的修改需要特別注意
+## `.env` 的階層
+
+- 在 `./.env` 的設定伺服器群的參數，會影響到其他機器的參數，如果機器資料夾下的 `.env` 有設定同樣的參數名稱的不同值，就會覆蓋掉 `./.env` 的參數
+- 除了個別填寫 .env 欄位之外，以下參數的修改需要特別注意：
 
 ## .env.isunfa 特別注意的欄位
 
