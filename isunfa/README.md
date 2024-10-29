@@ -8,8 +8,7 @@
     - [安裝 git](#安裝-git)
     - [安裝 docker](#安裝-docker)
     - [確認 GPU 相關驅動程式是否安裝](#確認-gpu-相關驅動程式是否安裝)
-    - [git clone repo](#git-clone-repo)
-    - [複製每個 isunfa/ 底下的 .env.xxx.sample](#複製每個-isunfa-底下的-envxxxsample)
+  - [git clone repo](#git-clone-repo)
   - [修改 .env 內容](#修改-env-內容)
   - [設置 domain](#設置-domain)
   - [自動更新 docker container 裡的服務](#自動更新-docker-container-裡的服務)
@@ -239,7 +238,7 @@ Mon Oct 21 08:42:36 2024
 
 ```
 
-### git clone repo
+## git clone repo
 
 ```
 git clone <https://github.com/CAFECA-IO/ServerSwarm.git>
@@ -248,7 +247,9 @@ git checkout develop
 
 ```
 
-### 複製每個 isunfa/ 底下的 .env.xxx.sample
+## 修改 .env 內容
+
+- 複製每個 isunfa/ 底下的 .env.xxx.sample
 
 ```
 cp isunfa/.env.sample isunfa/.env
@@ -258,10 +259,7 @@ cp isunfa/aich/.env.aich.sample isunfa/aich/.env.aich
 cp isunfa/nginx/.env.nginx.sample isunfa/nginx/.env.nginx
 cp isunfa/ollama/.env.ollama.sample isunfa/ollama/.env.ollama
 cp isunfa/postgres/.env.postgres.sample isunfa/postgres/.env.postgres
-
 ```
-
-## 修改 .env 內容
 
 - `.env` 的階層
   - 在 `./.env` 的設定伺服器群的參數，會影響到其他機器的參數，如果機器資料夾下的 `.env` 有設定同樣的參數名稱的不同值，就會覆蓋掉 `./.env` 的參數
@@ -447,8 +445,6 @@ docker compose up -d
 ![CleanShot 2024-10-29 at 16 32 52](https://github.com/user-attachments/assets/1f43d6b5-dd01-4ef0-b22b-18d7ebeb698d)
 
 ![CleanShot 2024-10-29 at 16 31 50](https://github.com/user-attachments/assets/f80d5b9f-2af4-4b86-b6a6-8d79eafc37d2)
-
-
 
 ## 遷移應用程式
 
