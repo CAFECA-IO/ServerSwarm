@@ -444,6 +444,12 @@ docker compose up -d
 2. 資料庫
 3. 媒體文件
 
+![CleanShot 2024-10-29 at 16 32 52](https://github.com/user-attachments/assets/1f43d6b5-dd01-4ef0-b22b-18d7ebeb698d)
+
+![CleanShot 2024-10-29 at 16 31 50](https://github.com/user-attachments/assets/f80d5b9f-2af4-4b86-b6a6-8d79eafc37d2)
+
+
+
 ## 遷移應用程式
 
 用 GitHub 備份程式碼，操作如同[如何使用 iSunFA server swarm](#如何使用-isunfa-server-swarm)，然後將光標切到 isunfa swarm 資料夾底下
