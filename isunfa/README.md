@@ -9,7 +9,7 @@
     - [安裝 docker](#安裝-docker)
     - [確認 GPU 相關驅動程式是否安裝](#確認-gpu-相關驅動程式是否安裝)
   - [git clone repo](#git-clone-repo)
-  - [修改 .env 內容](#修改-env-內容)
+    - [修改 .env 內容](#修改-env-內容)
   - [設置 domain](#設置-domain)
   - [自動更新 docker container 裡的服務](#自動更新-docker-container-裡的服務)
   - [啟動 docker compose](#啟動-docker-compose)
@@ -247,7 +247,7 @@ git checkout develop
 
 ```
 
-## 修改 .env 內容
+### 修改 .env 內容
 
 - 複製每個 isunfa/ 底下的 .env.xxx.sample
 
@@ -271,7 +271,6 @@ cp isunfa/postgres/.env.postgres.sample isunfa/postgres/.env.postgres
 NEXTAUTH_URL = https://<ISUNFA_DOMAIN>
 AICH_URI = https://<AICH_DOMAIN>
 DATABASE_URL = <DATABASE_URL>
-
 ```
 
 - .env.faith 特別注意的欄位
