@@ -1,30 +1,61 @@
 本文說明如何在 linux 主機上透過 docker compose 運行 isunfa 集群
 
-- [環境建置](#環境建置)
-  - [安裝 git](#安裝-git)
-  - [安裝 docker](#安裝-docker)
-  - [確認 GPU 相關驅動程式是否安裝](#確認-gpu-相關驅動程式是否安裝)
-- [git clone repo](#git-clone-repo)
-- [複製每個 isunfa/ 底下的 .env.xxx.sample](#複製每個-isunfa-底下的-envxxxsample)
-- [修改 .env 內容](#修改-env-內容)
-  - [`.env` 的階層](#env-的階層)
-  - [.env.isunfa 特別注意的欄位](#envisunfa-特別注意的欄位)
-  - [.env.faith 特別注意的欄位](#envfaith-特別注意的欄位)
-  - [.env.aich 特別注意的欄位](#envaich-特別注意的欄位)
-  - [.env.nginx 特別注意的欄位](#envnginx-特別注意的欄位)
-- [設置 domain](#設置-domain)
-- [自動更新 docker container 裡的服務](#自動更新-docker-container-裡的服務)
-- [啟動 docker compose](#啟動-docker-compose)
+- [如何使用 iSunFA server swarm](#如何使用-isunfa-server-swarm)
+  - [系統要求](#系統要求)
+    - [硬體要求](#硬體要求)
+    - [軟體要求](#軟體要求)
+  - [環境建置](#環境建置)
+    - [安裝 git](#安裝-git)
+    - [安裝 docker](#安裝-docker)
+    - [確認 GPU 相關驅動程式是否安裝](#確認-gpu-相關驅動程式是否安裝)
+    - [git clone repo](#git-clone-repo)
+    - [複製每個 isunfa/ 底下的 .env.xxx.sample](#複製每個-isunfa-底下的-envxxxsample)
+  - [修改 .env 內容](#修改-env-內容)
+  - [設置 domain](#設置-domain)
+  - [自動更新 docker container 裡的服務](#自動更新-docker-container-裡的服務)
+  - [啟動 docker compose](#啟動-docker-compose)
   - [其他相關指令](#其他相關指令)
+- [遷移 iSunFA 服務集群](#遷移-isunfa-服務集群)
+  - [遷移應用程式](#遷移應用程式)
+  - [遷移資料庫](#遷移資料庫)
+    - [複製舊系統資料庫](#複製舊系統資料庫)
+    - [將舊資料庫貼到新系統資料庫上](#將舊資料庫貼到新系統資料庫上)
+    - [確認是否備份成功](#確認是否備份成功)
+  - [遷移媒體文件](#遷移媒體文件)
+  - [完成以上遷移後，在新的主機上運行 docker compose 啟動服務](#完成以上遷移後在新的主機上運行-docker-compose-啟動服務)
 
-# 環境建置
+# 如何使用 iSunFA server swarm
 
-## 安裝 git
+## 系統要求
+
+### 硬體要求
+
+1. CPU
+   1. 至少 4 核心。
+2. 記憶體（RAM）
+   1. 最少 32 GB RAM。
+3. 儲存
+   1. SSD 儲存設備，至少 500 GB 可用空間
+4. GPU （可選）
+   1. 需配備 NVIDIA GPU，如果沒有的話，需將 docker-compose.yml 的 ollama 取消 GPU 設定
+
+### 軟體要求
+
+1. 作業系統
+   1. Ubuntu 22.04.4 LTS
+2. Docker
+   1. Docker version 27.3.1
+3. Nividia 驅動程式（如果有啟動 ollama 的 GPU 設置）
+
+## 環境建置
+
+### 安裝 git
 
 確認 git 是否成功安裝
 
 ```
 git --version
+
 ```
 
 如果沒有安裝的話，可以透過以下指令安裝
@@ -32,14 +63,16 @@ git --version
 ```
 sudo apt update
 sudo apt install git
+
 ```
 
-## 安裝 docker
+### 安裝 docker
 
 - 確認 docker 是否成功安裝
 
   ```
   docker --version
+
   ```
 
 - 查看 Docker 運行狀態跟位置
@@ -52,34 +85,38 @@ sudo apt install git
   - `sudo apt-get remove docker docker-engine docker.io containerd runc`
 
   ```
-  sudo apt-get install \
-       ca-certificates \
-       curl \
-       gnupg \
+  sudo apt-get install \\
+       ca-certificates \\
+       curl \\
+       gnupg \\
        lsb-release
+
   ```
 
   ```
    sudo mkdir -p /etc/apt/keyrings
-     curl -fsSL https://download.docker.com/linux/ubuntu/gpg | sudo gpg --dearmor -o /etc/apt/keyrings/docker.gpg
+     curl -fsSL <https://download.docker.com/linux/ubuntu/gpg> | sudo gpg --dearmor -o /etc/apt/keyrings/docker.gpg
+
   ```
 
   ```
-  echo \
-       "deb [arch=$(dpkg --print-architecture) signed-by=/etc/apt/keyrings/docker.gpg] https://download.docker.com/linux/ubuntu \
+  echo \\
+       "deb [arch=$(dpkg --print-architecture) signed-by=/etc/apt/keyrings/docker.gpg] <https://download.docker.com/linux/ubuntu> \\
        $(lsb_release -cs) stable" | sudo tee /etc/apt/sources.list.d/docker.list > /dev/null
+
   ```
 
   ```bash
   sudo apt-get update
 
   sudo apt-get install docker-ce docker-ce-cli containerd.io docker-buildx-plugin docker-compose-plugin
+
   ```
 
 - 確認 docker 是否能正常運行
   - `docker run hello-world`
 
-## 確認 GPU 相關驅動程式是否安裝
+### 確認 GPU 相關驅動程式是否安裝
 
 - 先確認是否有 Nvidia GPU，如果沒有的話，就取消 docker-compose.yml 裡 ollama 的 gpu，如果有的話，則需要確認 Linux 主機跟 docker 的相關設置
 
@@ -92,8 +129,8 @@ docker compose down
 docker compose up -d
 
 distribution=$(. /etc/os-release;echo $ID$VERSION_ID)
-     curl -s -L https://nvidia.github.io/nvidia-docker/gpgkey | sudo apt-key add -
-     curl -s -L https://nvidia.github.io/nvidia-docker/$distribution/nvidia-docker.list | sudo tee /etc/apt/sources.list.d/nvidia-docker.list
+     curl -s -L <https://nvidia.github.io/nvidia-docker/gpgkey> | sudo apt-key add -
+     curl -s -L <https://nvidia.github.io/nvidia-docker/$distribution/nvidia-docker.list> | sudo tee /etc/apt/sources.list.d/nvidia-docker.list
      sudo apt-get update
      sudo apt-get install -y nvidia-docker2
      sudo systemctl restart docker
@@ -101,7 +138,7 @@ distribution=$(. /etc/os-release;echo $ID$VERSION_ID)
 # 查看驅動程式狀態
 nvidia-smi
 
-# 下載 cuda 最新版 https://hub.docker.com/r/nvidia/cuda/tags
+# 下載 cuda 最新版 <https://hub.docker.com/r/nvidia/cuda/tags>
 docker pull nvidia/cuda:12.6.2-cudnn-devel-ubi9
 
 # 確認 cuda image label (映像檔標籤)
@@ -136,7 +173,7 @@ sudo reboot
 # 查看驅動程式狀態
 nvidia-smi
 
-### 應該看到類似以下資訊
+### -----應該看到類似以下資訊-----
 
 Mon Oct 21 16:48:37 2024
 +-----------------------------------------------------------------------------------------+
@@ -160,12 +197,12 @@ Mon Oct 21 16:48:37 2024
 | 0 N/A N/A 3926 G /usr/bin/gnome-shell 3MiB |
 +-----------------------------------------------------------------------------------------+
 
-###
+### -----應該看到類似以上資訊-----
 
 # 安裝 nvidia container toolkit repository
-curl -fsSL https://nvidia.github.io/libnvidia-container/gpgkey | sudo gpg --dearmor -o /usr/share/keyrings/nvidia-container-toolkit-keyring.gpg \
-  && curl -s -L https://nvidia.github.io/libnvidia-container/stable/deb/nvidia-container-toolkit.list | \
-    sed 's#deb https://#deb [signed-by=/usr/share/keyrings/nvidia-container-toolkit-keyring.gpg] https://#g' | \
+curl -fsSL <https://nvidia.github.io/libnvidia-container/gpgkey> | sudo gpg --dearmor -o /usr/share/keyrings/nvidia-container-toolkit-keyring.gpg \\
+  && curl -s -L <https://nvidia.github.io/libnvidia-container/stable/deb/nvidia-container-toolkit.list> | \\
+    sed 's#deb https://#deb [signed-by=/usr/share/keyrings/nvidia-container-toolkit-keyring.gpg] https://#g' | \\
     sudo tee /etc/apt/sources.list.d/nvidia-container-toolkit.list
 
 # 安裝 nvidia container toolkit
@@ -177,7 +214,8 @@ sudo systemctl restart docker
 
 # 確認 docker 可以識別 nvidia gpu
 docker run --rm --gpus all nvidia/cuda:12.2.0-base-ubuntu20.04 nvidia-smi
-### 應該看到類似以下資訊
+
+### -----應該看到類似以下資訊-----
 Mon Oct 21 08:42:36 2024
 +-----------------------------------------------------------------------------------------+
 | NVIDIA-SMI 560.35.03              Driver Version: 560.35.03      CUDA Version: 12.6     |
@@ -197,18 +235,20 @@ Mon Oct 21 08:42:36 2024
 |        ID   ID                                                               Usage      |
 |=========================================================================================|
 +-----------------------------------------------------------------------------------------+
-###
-```
-
-# git clone repo
+### -----應該看到類似以上資訊-----
 
 ```
-git clone https://github.com/CAFECA-IO/ServerSwarm.git
+
+### git clone repo
+
+```
+git clone <https://github.com/CAFECA-IO/ServerSwarm.git>
 
 git checkout develop
+
 ```
 
-# 複製每個 isunfa/ 底下的 .env.xxx.sample
+### 複製每個 isunfa/ 底下的 .env.xxx.sample
 
 ```
 cp isunfa/.env.sample isunfa/.env
@@ -218,44 +258,46 @@ cp isunfa/aich/.env.aich.sample isunfa/aich/.env.aich
 cp isunfa/nginx/.env.nginx.sample isunfa/nginx/.env.nginx
 cp isunfa/ollama/.env.ollama.sample isunfa/ollama/.env.ollama
 cp isunfa/postgres/.env.postgres.sample isunfa/postgres/.env.postgres
+
 ```
 
-# 修改 .env 內容
+## 修改 .env 內容
 
-## `.env` 的階層
-
-- 在 `./.env` 的設定伺服器群的參數，會影響到其他機器的參數，如果機器資料夾下的 `.env` 有設定同樣的參數名稱的不同值，就會覆蓋掉 `./.env` 的參數
-- 除了個別填寫 .env 欄位之外，以下參數的修改需要特別注意：
-
-## .env.isunfa 特別注意的欄位
-
-- 其中 `DATABASE_URL` 會用到 `.env.postgres` ，為 `postgresql://${POSTGRES_USER}:${POSTGRES_PASSWORD}@${HOST_IP}:${POSTGRES_PORT}/${POSTGRES_DB}`
+- `.env` 的階層
+  - 在 `./.env` 的設定伺服器群的參數，會影響到其他機器的參數，如果機器資料夾下的 `.env` 有設定同樣的參數名稱的不同值，就會覆蓋掉 `./.env` 的參數
+  - 除了個別填寫 .env 欄位之外，以下參數的修改需要特別注意：
+- .env.isunfa 特別注意的欄位
+  - 其中 `DATABASE_URL` 會用到 `.env.postgres` ，為 `postgresql://${POSTGRES_USER}:${POSTGRES_PASSWORD}@${HOST_IP}:${POSTGRES_PORT}/${POSTGRES_DB}`
 
 ```
 NEXTAUTH_URL = https://<ISUNFA_DOMAIN>
 AICH_URI = https://<AICH_DOMAIN>
 DATABASE_URL = <DATABASE_URL>
+
 ```
 
-## .env.faith 特別注意的欄位
+- .env.faith 特別注意的欄位
 
 ```
 NEXT_PUBLIC_AICH_URL=https://<AICH_DOMAIN>
+
 ```
 
-## .env.aich 特別注意的欄位
+- .env.aich 特別注意的欄位
 
 ```
 OLLAMA_HOST=http://ollama:11434
 QDRANT_HOST=http://qdrant:6333
+
 ```
 
-## .env.nginx 特別注意的欄位
+- .env.nginx 特別注意的欄位
 
 ```
 ISUNFA_SERVER_NAME=<ISUNFA_DOMAIN>
 AICH_SERVER_NAME=<AICH_DOMAIN>
 FAITH_SERVER_NAME=<FAITH_DOMAIN>
+
 ```
 
 例如
@@ -264,9 +306,10 @@ FAITH_SERVER_NAME=<FAITH_DOMAIN>
 ISUNFA_SERVER_NAME=isunfa.com
 AICH_SERVER_NAME=aich.isunfa.com
 FAITH_SERVER_NAME=faith.isunfa.com
+
 ```
 
-# 設置 domain
+## 設置 domain
 
 如果已經在其他 DNS 服務中設置域名，則可跳過此步驟
 
@@ -274,32 +317,36 @@ FAITH_SERVER_NAME=faith.isunfa.com
 
    ```
    sudo nano /etc/hosts
+
    ```
 
 2. 在文件末尾添加以下行，將 `<HOST_IP>` 替換為您的主機 IP 地址，將 `<ISUNFA_DOMAIN>`、`<AICH_DOMAIN>` 和 `<FAITH_DOMAIN>` 替換為您在 `.env.nginx` 文件中設置的相應域名：
 
    ```
    <HOST_IP> <ISUNFA_DOMAIN> <AICH_DOMAIN> <FAITH_DOMAIN>
+
    ```
 
    例如：
 
    ```
    192.168.1.100 isunfa.com aich.isunfa.com faith.isunfa.com
+
    ```
 
 3. 保存文件並退出編輯器。
-
 4. 刷新 DNS 快取
 
    ```
    sudo systemd-resolve --flush-caches
+
    ```
 
    或者重啟網絡服務：
 
    ```
    sudo systemctl restart systemd-resolved
+
    ```
 
 5. 驗證 DNS 設置是否生效：
@@ -308,32 +355,32 @@ FAITH_SERVER_NAME=faith.isunfa.com
    ping <ISUNFA_DOMAIN>
    ping <AICH_DOMAIN>
    ping <FAITH_DOMAIN>
+
    ```
 
    例如
 
    ```
     ping isunfa.com
+
    ```
 
    如果設置正確，會顯示設置的 IP 地址。
 
-# 自動更新 docker container 裡的服務
+## 自動更新 docker container 裡的服務
 
 透過 ofelia 在 docker container 裡執行 cron job，依照 GitHub branch 自動更新 docker container 的服務
 
 1. 填寫自動更新腳本的參數
-
-   - 填寫 `isunfa/.env.isunfa`, `faith/.env.faith`, `aich/.env.aich` 用於自動更新(check-update.sh)的參數
-
+   - 填寫 `isunfa/.env.isunfa`, `faith/.env.faith`, `aich/.env.aich` 用於自動更新 `check-update.sh` 的參數
 2. 填寫 config.ini
-
    - 填寫 `ofelia/config.ini` 用於自動更新的參數
 
-# 啟動 docker compose
+## 啟動 docker compose
 
 ```
 docker compose up -d
+
 ```
 
 ## 其他相關指令
@@ -346,17 +393,24 @@ docker compose up -d
   docker stop $(docker ps -q)
 
   docker rm $(docker ps -a -q)
+
   ```
 
 - 重啟 docker
+
   ```bash
   docker compose down
   docker compose up -d
+
   ```
+
 - 查看 docker container name and id
+
   ```bash
   docker ps
+
   ```
+
 - 進到 docker container 內部
 
   ```bash
@@ -379,4 +433,127 @@ docker compose up -d
   # 例如 isunfa
   docker exec -it isunfa-isunfa-1 /bin/bash
   docker-compose exec -it isunfa /bin/bash
+
   ```
+
+# 遷移 iSunFA 服務集群
+
+遷移環境需要確保新環境上的服務跟舊環境一樣，需確保程式邏輯跟配置文件一致，在 iSunFA 需要遷移的有
+
+1. 應用程式本身
+2. 資料庫
+3. 媒體文件
+
+## 遷移應用程式
+
+用 GitHub 備份程式碼，操作如同[如何使用 iSunFA server swarm](#如何使用-isunfa-server-swarm)，然後將光標切到 isunfa swarm 資料夾底下
+
+```bash
+cd isunfa
+```
+
+## 遷移資料庫
+
+透過 PostgreSQL 官方提供的工具，去備份跟恢復整個資料庫，包含 data, auto increment, schema
+
+### 複製舊系統資料庫
+
+- 在本地終端機執行以下指令去備份舊系統的資料庫
+
+```bash
+pg_dump -U <your_username> -h <old_host_ip> -p <old_port> -F c -b -v -f old_db_backup.dump <old_database_name>
+
+```
+
+### 將舊資料庫貼到新系統資料庫上
+
+- 透過 docker 單獨開 postgres container，避免 docker-compose.yml 裡其他 container 去初始化、seed postgres；如果資料庫不是空的，會造成備份失敗
+
+```bash
+docker compose up -d postgres # 這邊的 container name 指的是 docker-compose.yml 裡寫好的 service name
+```
+
+- 在本地終端機執行以下指令去備份舊系統的資料庫
+
+```bash
+pg_restore -U <your_username_in_new_database> -h <new_host_ip> -p <new_port> -d <new_database_name> -v --no-owner old_db_backup.dump
+
+```
+
+- 將資料貼到新系統的過程中如果有出現任何錯誤 log，則暫停 docker container，並且刪除在本地掛載的資料夾，重啟全新的資料庫容器
+
+```bash
+docker compose stop postgres # 或者關掉現在目錄底下所有的 container： `docker compose down`
+sudo rm -rf ./postgres/data
+
+docker compose up -d postgres
+```
+
+### 確認是否備份成功
+
+postgres 的用戶名、密碼、資料庫名稱都在 `.env.postgres` 裡，postgres 的 port 則在 docker-compose.yml 裡，而 postgres host ip 則為運行機器的 ip
+
+- 透過 table plus 連線到新系統資料庫查看是否成功備份資料
+
+```bash
+DATABASE_URL = postgresql://<POSTGRES_USER>:<POSTGRES_PASSWORD>@<HOST_IP>:<PORT>/<POSTGRES_DB>
+```
+
+- 透過比對舊系統跟新系統的資料筆數來驗證資料是否成功備份，分別在舊系統跟新系統上
+
+```bash
+# 用 psql 登入
+psql -h <HOST_IP> -U <USER_NAME> -d <DATABASE_NAME>
+
+# 分別登進去兩個資料庫裡之後，輸入以下 sql 進行查詢，再去比對兩者的結果
+SELECT
+    table_schema,
+    table_name,
+    COUNT(*) AS row_count
+FROM
+    information_schema.tables
+JOIN
+    information_schema.columns USING (table_schema, table_name)
+WHERE
+    table_type = 'BASE TABLE' AND
+    table_schema NOT IN ('pg_catalog', 'information_schema')
+GROUP BY
+    table_schema, table_name
+ORDER BY
+    table_schema, table_name;
+```
+
+- 透過模擬重要的用戶操作來檢驗 CRUD 是否跟舊系統運行的結果一樣，例如開啟整個 isunfa service 之後，去操作登入、上傳圖片、建立日記帳、建立傳票、生成並查看報表
+
+## 遷移媒體文件
+
+- 將舊系統上的媒體文件壓縮之後下載到本地，在本地終端機將媒體文件壓縮檔傳輸到要運行新系統的主機上；根據 .env.isunfa 跟 .env.aich 得知有兩個資料夾需要遷移，分別是 `{HOME}/isunfa` 跟 `{HOME}/AICH`
+- 將 macOS 上的檔案傳輸到遠端主機上
+
+```bash
+rsync -avz --progress /本地/資料夾/路徑 使用者名稱@遠端主機IP:/遠端/目標/路徑
+
+# 例如將壓縮檔傳輸到遠端主機的{HOME}底下
+rsync -avz --progress /Users/isunfa/media/isunfa.zip REMOTE_USERNAME@REMOTE_HOST_IP:~
+
+```
+
+- 在 linux 遠端主機上解壓縮
+
+```tsx
+unzip file.zip
+```
+
+- 比對檔案數量跟檔案大小
+
+```tsx
+cd directory_path
+find file_or_directory | wc -l
+du -sh file_or_directory
+```
+
+## 完成以上遷移後，在新的主機上運行 docker compose 啟動服務
+
+```bash
+docker compose up -d
+```
