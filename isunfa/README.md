@@ -37,7 +37,7 @@
 3. 儲存
    1. SSD 儲存設備，至少 500 GB 可用空間
 4. GPU （可選）
-   1. 需配備 NVIDIA GPU，如果沒有的話，則使用 docker-compose.cpu.yml，如果有 GPU 則使用 docker-compose.gpu.yml
+   1. 需配備 NVIDIA GPU，如果沒有的話，則使用 docker-compose.cpu.yml 去運行服務，如果有 GPU 則使用 docker-compose.gpu.yml
 
 ### 軟體要求
 
@@ -46,7 +46,7 @@
 2. Docker
    1. Docker version 27.3.1
 3. Nividia 驅動程式（可選）
-   1. 需配備 NVIDIA GPU，如果沒有的話，則使用 docker-compose.cpu.yml，如果有 GPU 則使用 docker-compose.gpu.yml
+   1. 需配備 NVIDIA GPU，如果沒有硬體資源，則可跳過
 
 ## 環境建置
 
