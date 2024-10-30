@@ -6,9 +6,5 @@ x-deploy-cpu: &cpu-config
 
 services:
   ollama:
-    image: ollama/ollama:0.3.6
-    volumes:
-      - ./ollama:/root/.ollama
-    restart: always
     deploy:
       <<: *cpu-config

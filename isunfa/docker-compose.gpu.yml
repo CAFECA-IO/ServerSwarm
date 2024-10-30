@@ -11,9 +11,5 @@ x-deploy-gpu: &gpu-config
 
 services:
   ollama:
-    image: ollama/ollama:0.3.6
-    volumes:
-      - ./ollama:/root/.ollama
-    restart: always
     deploy:
       <<: *gpu-config
