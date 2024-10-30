@@ -1,0 +1,14 @@
+# Info: (20241030 - Shirley) 配置 CPU 资源限制
+x-deploy-cpu: &cpu-config
+  resources:
+    limits:
+      memory: 17G
+
+services:
+  ollama:
+    image: ollama/ollama:0.3.6
+    volumes:
+      - ./ollama:/root/.ollama
+    restart: always
+    deploy:
+      <<: *cpu-config

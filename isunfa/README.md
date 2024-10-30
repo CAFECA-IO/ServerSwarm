@@ -1,4 +1,4 @@
-本文說明如何在 linux 主機上透過 docker compose 運行 isunfa 集群
+本文說明如何在 linux / macOS 上透過 docker compose 運行 isunfa 集群
 
 - [如何使用 iSunFA server swarm](#如何使用-isunfa-server-swarm)
   - [系統要求](#系統要求)
@@ -7,12 +7,13 @@
   - [環境建置](#環境建置)
     - [安裝 git](#安裝-git)
     - [安裝 docker](#安裝-docker)
-    - [確認 GPU 相關驅動程式是否安裝](#確認-gpu-相關驅動程式是否安裝)
+    - [確認 GPU 相關驅動程式是否安裝（可選）](#確認-gpu-相關驅動程式是否安裝可選)
   - [git clone repo](#git-clone-repo)
     - [修改 .env 內容](#修改-env-內容)
   - [設置 domain](#設置-domain)
   - [自動更新 docker container 裡的服務](#自動更新-docker-container-裡的服務)
   - [啟動 docker compose](#啟動-docker-compose)
+  - [驗證是否成功啟動](#驗證是否成功啟動)
   - [其他相關指令](#其他相關指令)
 - [遷移 iSunFA 服務集群](#遷移-isunfa-服務集群)
   - [遷移應用程式](#遷移應用程式)
@@ -36,7 +37,7 @@
 3. 儲存
    1. SSD 儲存設備，至少 500 GB 可用空間
 4. GPU （可選）
-   1. 需配備 NVIDIA GPU，如果沒有的話，需將 docker-compose.yml 的 ollama 取消 GPU 設定
+   1. 需配備 NVIDIA GPU，如果沒有的話，則使用 docker-compose.cpu.yml，如果有 GPU 則使用 docker-compose.gpu.yml
 
 ### 軟體要求
 
@@ -44,7 +45,8 @@
    1. Ubuntu 22.04.4 LTS
 2. Docker
    1. Docker version 27.3.1
-3. Nividia 驅動程式（如果有啟動 ollama 的 GPU 設置）
+3. Nividia 驅動程式（可選）
+   1. 需配備 NVIDIA GPU，如果沒有的話，則使用 docker-compose.cpu.yml，如果有 GPU 則使用 docker-compose.gpu.yml
 
 ## 環境建置
 
@@ -115,9 +117,9 @@ sudo apt install git
 - 確認 docker 是否能正常運行
   - `docker run hello-world`
 
-### 確認 GPU 相關驅動程式是否安裝
+### 確認 GPU 相關驅動程式是否安裝（可選）
 
-- 先確認是否有 Nvidia GPU，如果沒有的話，就取消 docker-compose.yml 裡 ollama 的 gpu，如果有的話，則需要確認 Linux 主機跟 docker 的相關設置
+- 先確認硬體設備是否有 Nvidia GPU，如果沒有的話，則跳過這一步
 
 ```bash
 sudo apt-get install -y nvidia-container-toolkit
@@ -125,7 +127,8 @@ sudo apt-get install -y nvidia-container-toolkit
 sudo systemctl restart docker
 
 docker compose down
-docker compose up -d
+# 使用 GPU
+docker compose -f docker-compose.yml -f docker-compose.gpu.yml up -d
 
 distribution=$(. /etc/os-release;echo $ID$VERSION_ID)
      curl -s -L <https://nvidia.github.io/nvidia-docker/gpgkey> | sudo apt-key add -
@@ -245,20 +248,22 @@ git clone <https://github.com/CAFECA-IO/ServerSwarm.git>
 
 git checkout develop
 
+cd isunfa
+
 ```
 
 ### 修改 .env 內容
 
-- 複製每個 isunfa/ 底下的 .env.xxx.sample
+- 複製每個 isunfa 相關的 .env sample
 
 ```
-cp isunfa/.env.sample isunfa/.env
-cp isunfa/isunfa/.env.isunfa.sample isunfa/isunfa/.env.isunfa
-cp isunfa/faith/.env.faith.sample isunfa/faith/.env.faith
-cp isunfa/aich/.env.aich.sample isunfa/aich/.env.aich
-cp isunfa/nginx/.env.nginx.sample isunfa/nginx/.env.nginx
-cp isunfa/ollama/.env.ollama.sample isunfa/ollama/.env.ollama
-cp isunfa/postgres/.env.postgres.sample isunfa/postgres/.env.postgres
+cp ./.env.sample ./.env
+cp ./isunfa/.env.isunfa.sample ./isunfa/.env.isunfa
+cp ./faith/.env.faith.sample ./faith/.env.faith
+cp ./aich/.env.aich.sample ./aich/.env.aich
+cp ./nginx/.env.nginx.sample ./nginx/.env.nginx
+cp ./ollama/.env.ollama.sample ./ollama/.env.ollama
+cp ./postgres/.env.postgres.sample ./postgres/.env.postgres
 ```
 
 - `.env` 的階層
@@ -375,10 +380,17 @@ FAITH_SERVER_NAME=faith.isunfa.com
 
 ## 啟動 docker compose
 
-```
-docker compose up -d
+```bash
+# 使用 GPU
+docker compose -f docker-compose.yml -f docker-compose.gpu.yml up -d
 
+# 使用 CPU
+docker compose -f docker-compose.yml -f docker-compose.cpu.yml up -d
 ```
+
+## 驗證是否成功啟動
+
+- 透過瀏覽器訪問 `<ISUNFA_DOMAIN>`，如果能登入、上傳圖片、建立傳票、產生報表，則服務啟動成功
 
 ## 其他相關指令
 
@@ -399,6 +411,8 @@ docker compose up -d
   docker compose down
   docker compose up -d
 
+  # 使用 docker compose override
+  docker compose -f <FIRST_CONFIG_YAML> -f <SECOND_CONFIG_YAML> up -d
   ```
 
 - 查看 docker container name and id
@@ -500,7 +514,7 @@ postgres 的用戶名、密碼、資料庫名稱都在 `.env.postgres` 裡，pos
 DATABASE_URL = postgresql://<POSTGRES_USER>:<POSTGRES_PASSWORD>@<HOST_IP>:<PORT>/<POSTGRES_DB>
 ```
 
-- 透過比對舊系統跟新系統的資料筆數來驗證資料是否成功備份，分別在舊系統跟新系統上
+- 透過比對舊系統跟新系統的 table schema 跟 table row count 來驗證資料是否成功備份，分別在舊系統跟新系統上執行指令：
 
 ```bash
 # 用 psql 登入
@@ -522,6 +536,15 @@ GROUP BY
     table_schema, table_name
 ORDER BY
     table_schema, table_name;
+```
+
+- 檢查資料庫各個 table 的資料筆數
+
+```bash
+SELECT COUNT(*) FROM public.$TABLE;
+
+# 例如檢查 user table 的資料筆數
+SELECT COUNT(*) FROM public.user;
 ```
 
 - 透過模擬重要的用戶操作來檢驗 CRUD 是否跟舊系統運行的結果一樣，例如開啟整個 isunfa service 之後，去操作登入、上傳圖片、建立日記帳、建立傳票、生成並查看報表
@@ -556,5 +579,9 @@ du -sh file_or_directory
 ## 完成以上遷移後，在新的主機上運行 docker compose 啟動服務
 
 ```bash
-docker compose up -d
+# 使用 GPU
+docker compose -f docker-compose.yml -f docker-compose.gpu.yml up -d
+
+# 使用 CPU
+docker compose -f docker-compose.yml -f docker-compose.cpu.yml up -d
 ```

@@ -1,0 +1,19 @@
+# Info: (20241030 - Shirley) 配置 GPU 资源限制
+x-deploy-gpu: &gpu-config
+  resources:
+    limits:
+      memory: 17G
+    reservations:
+      devices:
+        - driver: nvidia
+          count: 1
+          capabilities: [gpu]
+
+services:
+  ollama:
+    image: ollama/ollama:0.3.6
+    volumes:
+      - ./ollama:/root/.ollama
+    restart: always
+    deploy:
+      <<: *gpu-config
