@@ -14,6 +14,7 @@
   - [自動更新 docker container 裡的服務](#自動更新-docker-container-裡的服務)
   - [啟動 docker compose](#啟動-docker-compose)
   - [驗證是否成功啟動](#驗證是否成功啟動)
+    - [檢查是否成功使用 GPU （可選）](#檢查是否成功使用-gpu-可選)
   - [其他相關指令](#其他相關指令)
 - [遷移 iSunFA 服務集群](#遷移-isunfa-服務集群)
   - [遷移應用程式](#遷移應用程式)
@@ -391,6 +392,43 @@ docker compose -f docker-compose.yml -f docker-compose.cpu.yml up -d
 ## 驗證是否成功啟動
 
 - 透過瀏覽器訪問 `<ISUNFA_DOMAIN>`，如果能登入、上傳圖片、建立傳票、產生報表，則服務啟動成功
+
+### 檢查是否成功使用 GPU （可選）
+
+1. 檢查 ollama container 的運行狀態
+
+```bash
+# 查看 ollama container 的 log
+docker compose logs ollama
+
+# 查看所有 container 的資源使用情況
+docker stats
+```
+
+2. 監控 GPU 使用狀況
+
+```bash
+# 即時監控 GPU 使用情況(每秒更新)
+nvidia-smi -l 1
+```
+
+當 ollama 正確使用 GPU 時，你應該能看到:
+
+- nvidia-smi 輸出的 Processes 列表中出現 ollama 相關進程
+- 在使用 FAITH 機器人對話時，GPU 使用率會有明顯波動
+- GPU Memory Usage 會顯示 ollama 佔用的記憶體
+
+如果沒有看到以上現象，可能需要:
+
+1. 重新啟動 docker 服務
+
+```bash
+docker compose down
+docker compose -f docker-compose.yml -f docker-compose.gpu.yml up -d
+```
+
+2. 確認 nvidia-container-toolkit 安裝正確
+3. 檢查 docker-compose.gpu.yml 中的 GPU 相關設定
 
 ## 其他相關指令
 
