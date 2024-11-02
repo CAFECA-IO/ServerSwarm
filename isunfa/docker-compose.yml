@@ -108,18 +108,6 @@ services:
     volumes:
       - ./ollama:/root/.ollama
     restart: always
-    # Info (20240822 - Jacky): Uncomment the following lines to enable GPU support.
-
-    deploy:
-      resources:
-        limits:
-          memory: 17G
-        reservations:
-          devices:
-            - driver: nvidia
-              count: 1
-              capabilities: [gpu]
-
     expose:
       - "${OLLAMA_PORT}"
     env_file:
