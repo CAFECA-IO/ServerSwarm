@@ -437,7 +437,7 @@ docker compose -f docker-compose.yml -f docker-compose.gpu.yml up -d
 
 ### 重啟單一容器
 
-在更新 `.env` 之後，需要重啟單一容器
+在更新 `.env` 之後，需要重啟單一容器，例如更新 isunfa 容器：
 
 ```bash
 # 使用 GPU
@@ -457,9 +457,7 @@ docker compose -f docker-compose.yml -f docker-compose.cpu.yml up -d --no-deps i
 
 ### 更新單一服務的內容
 
-- 在 docker 啟動階段，如果 `app/` 資料夾有東西，則不會重新 clone Github repo，需要手動刪除 `app/` 資料夾之後，重啟 docker compose 才會重新 clone
-
-- 例如更新 aich 的程式碼
+在 docker 啟動階段，如果 `app/` 資料夾有東西，則不會重新 clone Github repo，需要手動刪除 `app/` 資料夾之後，重啟 docker compose 才會重新 clone，例如更新 aich 的程式碼：
 
 ```bash
 sudo rm -rf aich/app
