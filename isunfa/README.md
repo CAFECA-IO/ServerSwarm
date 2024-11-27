@@ -15,6 +15,9 @@
   - [啟動 docker compose](#啟動-docker-compose)
   - [驗證是否成功啟動](#驗證是否成功啟動)
     - [檢查是否成功使用 GPU （可選）](#檢查是否成功使用-gpu-可選)
+  - [其他處理情境](#其他處理情境)
+    - [重啟單一容器](#重啟單一容器)
+    - [更新單一服務的內容](#更新單一服務的內容)
   - [其他相關指令](#其他相關指令)
 - [遷移 iSunFA 服務集群](#遷移-isunfa-服務集群)
   - [遷移應用程式](#遷移應用程式)
@@ -430,6 +433,38 @@ docker compose -f docker-compose.yml -f docker-compose.gpu.yml up -d
 2. 確認 nvidia-container-toolkit 安裝正確
 3. 檢查 docker-compose.gpu.yml 中的 GPU 相關設定
 
+## 其他處理情境
+
+### 重啟單一容器
+
+在更新 `.env` 之後，需要重啟單一容器，例如更新 isunfa 容器：
+
+```bash
+# 使用 GPU
+docker compose -f docker-compose.yml -f docker-compose.gpu.yml up -d --no-deps isunfa
+
+# 使用 CPU
+docker compose -f docker-compose.yml -f docker-compose.cpu.yml up -d --no-deps isunfa
+```
+
+- `-f docker-compose.yml -f docker-compose.gpu.yml`：指定要使用的 Docker Compose 配置檔案。
+
+- `up -d`：在後台啟動或重新啟動服務。
+
+- `--no-deps`：不影響 isunfa 服務的相依服務，只重新啟動 isunfa。
+
+- `isunfa`：指定要重新啟動的服務名稱，依照 docker-compose.yml 裡的 service name 填寫。
+
+### 更新單一服務的內容
+
+在 docker 啟動階段，如果 `app/` 資料夾有東西，則不會重新 clone Github repo，需要手動刪除 `app/` 資料夾之後，重啟 docker compose 才會重新 clone，例如更新 aich 的程式碼：
+
+```bash
+docker compose down
+sudo rm -rf aich/app
+docker compose -f docker-compose.yml -f docker-compose.gpu.yml up -d
+```
+
 ## 其他相關指令
 
 - 查看每個容器使用資源的情況
@@ -443,9 +478,16 @@ docker compose -f docker-compose.yml -f docker-compose.gpu.yml up -d
 
   ```
 
+- 暫停單一容器
+
+  ```bash
+  docker stop <CONTAINER_NAME>
+  ```
+
 - 重啟 docker
 
   ```bash
+  # 使用 docker compose 預設的 docker-compose.yml
   docker compose down
   docker compose up -d
 
