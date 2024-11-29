@@ -459,6 +459,8 @@ docker compose -f docker-compose.yml -f docker-compose.cpu.yml up -d --no-deps i
 
 在 docker 啟動階段，如果 `app/` 資料夾有東西，則不會重新 clone Github repo，需要手動刪除 `app/` 資料夾之後，重啟 docker compose 才會重新 clone，例如更新 aich 的程式碼：
 
+如果需要切換不同 git branch 測試，在測試完畢後需刪除 `app/` 資料夾，才能讓自動部署成功更新至對應 branch 最新的 git head
+
 ```bash
 docker compose down
 sudo rm -rf aich/app
