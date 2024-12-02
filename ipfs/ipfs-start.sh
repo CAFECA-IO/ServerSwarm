@@ -21,15 +21,28 @@ echo "swarm.key created successfully at /data/ipfs/swarm.key"
 ipfs bootstrap rm --all
 
 # Info: (20240902 - Jacky) Ensure the environment variable is set
-if [ -z "$BOOTSTRAP_NODES" ]; then
-  echo "BOOTSTRAP_NODES environment variable is not set."
-  exit 1
-fi
+# if [ -z "$BOOTSTRAP_NODES" ]; then
+#   echo "BOOTSTRAP_NODES environment variable is not set."
+#   exit 1
+# fi
 
-# Info: (20240902 - Jacky) Add the bootstrap nodes
-for node in $BOOTSTRAP_NODES; do
-  ipfs bootstrap add "$node"
-done
+# # Info: (20240902 - Jacky) Add the bootstrap nodes
+# for node in $BOOTSTRAP_NODES; do
+#   ipfs bootstrap add "$node"
+# done
+
+# Info: (20241201 - Murky) 先改成如果沒有設定就不加入 bootstrap nodes
+if [ -n "$BOOTSTRAP_NODES" ]; then
+  echo "BOOTSTRAP_NODES environment variable is set. Adding bootstrap nodes..."
+  for node in $BOOTSTRAP_NODES; do
+    if [ -n "$node" ]; then
+      echo "Adding bootstrap node: $node"
+      ipfs bootstrap add "$node"
+    fi
+  done
+else
+  echo "BOOTSTRAP_NODES environment variable is not set or is empty. Skipping bootstrap addition."
+fi
 
 echo "All bootstrap nodes added successfully."
 
