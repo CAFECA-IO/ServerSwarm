@@ -17,6 +17,7 @@ EOF
 
 echo "swarm.key created successfully at /data/ipfs/swarm.key"
 
+
 # Info: (20240902 - Jacky) Clean up the bootstrap list
 ipfs bootstrap rm --all
 
@@ -33,6 +34,8 @@ ipfs bootstrap rm --all
 
 # Info: (20241201 - Murky) 先改成如果沒有設定就不加入 bootstrap nodes
 if [ -n "$BOOTSTRAP_NODES" ]; then
+
+
   echo "BOOTSTRAP_NODES environment variable is set. Adding bootstrap nodes..."
   for node in $BOOTSTRAP_NODES; do
     if [ -n "$node" ]; then
