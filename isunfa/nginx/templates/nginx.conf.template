@@ -10,27 +10,30 @@ server {
         proxy_set_header X-Forwarded-Proto $scheme;
         proxy_cache_bypass $http_upgrade;
     }
-}
 
-server {
-    listen ${NGINX_PORT};
-    server_name ${AICH_SERVER_NAME};
+
     # Info: (20241217 - Murky) file api 可以有比較大的上限
     location /api/v2/file {
 
-    location / {
-        proxy_pass ${AICH_DOCKER_URL};
-        proxy_buffering off;
         # Info: (20241217 - Murky) 調整單次圖片最大檔案上限
         client_max_body_size 4M;
 
         proxy_pass ${ISUNFA_DOCKER_URL};
-
         proxy_set_header Host $host;
         proxy_set_header X-Real-IP $remote_addr;
         proxy_set_header X-Forwarded-For $proxy_add_x_forwarded_for;
         proxy_set_header X-Forwarded-Proto $scheme;
         proxy_cache_bypass $http_upgrade;
+    }
+}
+
+server {
+    listen ${NGINX_PORT};
+    server_name ${AICH_SERVER_NAME};
+
+    location / {
+        proxy_pass ${AICH_DOCKER_URL};
+        proxy_buffering off;
     }
 }
 
