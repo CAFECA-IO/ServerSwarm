@@ -1,5 +1,5 @@
 #!/bin/bash
-
+# TODO: (20250207 - Shirley) 加上跟 `isunfa/isunfa/check-update.sh` 一樣的流程，包含 git checkout, build and check version
 LOG_FILE="${LOG_FILE}"
 SLACK_BOT_URL="${SLACK_BOT_URL}"
 TARGET_BRANCH="${TARGET_BRANCH}"

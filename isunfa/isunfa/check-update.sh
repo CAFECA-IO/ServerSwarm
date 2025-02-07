@@ -1,5 +1,5 @@
 #!/bin/bash
-
+# TODO: (20250207 - Shirley) API version 需要從 API 取得，而不是寫死
 LOG_FILE="${LOG_FILE}"
 SLACK_BOT_URL="${SLACK_BOT_URL}"
 TARGET_BRANCH="${TARGET_BRANCH}"
@@ -8,6 +8,9 @@ APP_PATH="${APP_PATH}"
 WEB_URL="${WEB_URL}"
 BASE_REPO_URL="${BASE_REPO_URL}"
 PORT="${PORT}" 
+
+API_RESPONSE=$(curl -s "http://localhost:$PORT/api/v2/status_info")
+echo "API_RESPONSE, before pull: $API_RESPONSE"
 
 REPO_URL="$BASE_REPO_URL/tree/$TARGET_BRANCH"
 
@@ -44,13 +47,13 @@ echo "$(date): 開始檢查更新" >> "$LOG_FILE"
 # Info: (20241016 - Shirley) 進入 app 目錄
 cd "$APP_PATH" || { echo "無法進入應用程式目錄: $APP_PATH" >> "$LOG_FILE"; exit 1; }
 
-# 確認當前目錄是否為 git 倉庫
+# Info: (20250207 - Shirley) 確認當前目錄是否為 git 倉庫
 if ! git rev-parse --git-dir > /dev/null 2>&1; then
     echo "$(date): 錯誤 - 當前目錄不是 git 倉庫" >> "$LOG_FILE"
     exit 1
 fi
 
-# 切換分支
+# Info: (20250207 - Shirley) 切換分支
 if ! git checkout "$TARGET_BRANCH"; then
     echo "$(date): 錯誤 - 無法切換到分支 $TARGET_BRANCH" >> "$LOG_FILE"
     exit 1
@@ -110,10 +113,13 @@ if [ "$LOCAL_LAST_COMMIT" != "$REMOTE_LAST_COMMIT" ]; then
             exit 1
         fi
 
+        API_RESPONSE_new=$(curl -s "http://localhost:$PORT/api/v2/status_info")
+        echo "API_RESPONSE, after pm2 restart immediately: $API_RESPONSE_new"
+
         # Info: (20250207 - Shirley) 確認網站版本號是否更新成功
-        sleep 150
+        sleep 120
         API_RESPONSE=$(curl -s "http://localhost:$PORT/api/v2/status_info")
-        SITE_VERSION=$(echo "$API_RESPONSE" | jq -r '.powerby' | grep -oP 'iSunFA \K[^ ]+')
+        SITE_VERSION=$(echo "$API_RESPONSE" | jq -r '.powerby' | grep -oP 'iSunFA \K[^ ]+' | sed 's/^v//')
         echo "$(date): 網站版本號: $SITE_VERSION" >> "$LOG_FILE"
 
         if [ "$SITE_VERSION" = "$REMOTE_VERSION" ]; then
