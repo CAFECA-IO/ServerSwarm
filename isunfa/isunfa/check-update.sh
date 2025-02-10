@@ -1,5 +1,5 @@
 #!/bin/bash
-
+# TODO: (20250207 - Shirley) API version 需要從 API 取得，而不是寫死
 LOG_FILE="${LOG_FILE}"
 SLACK_BOT_URL="${SLACK_BOT_URL}"
 TARGET_BRANCH="${TARGET_BRANCH}"
@@ -7,6 +7,10 @@ SERVER_NAME="${SERVER_NAME}"
 APP_PATH="${APP_PATH}"
 WEB_URL="${WEB_URL}"
 BASE_REPO_URL="${BASE_REPO_URL}"
+PORT="${PORT}" 
+
+API_RESPONSE=$(curl -s "http://localhost:$PORT/api/v2/status_info")
+echo "API_RESPONSE, before pull: $API_RESPONSE"
 
 REPO_URL="$BASE_REPO_URL/tree/$TARGET_BRANCH"
 
@@ -29,7 +33,7 @@ if ! command -v jq &> /dev/null; then
 fi
 
 # Info: (20241016 - Shirley) 確保日誌目錄存在
-mkdir -p $(dirname "$LOG_FILE")
+mkdir -p "$(dirname "$LOG_FILE")"
 
 # Info: (20241016 - Shirley) 如果日誌文件不存在，則創建它
 if [ ! -f "$LOG_FILE" ]; then
@@ -38,10 +42,22 @@ if [ ! -f "$LOG_FILE" ]; then
 fi
 
 # Info: (20241016 - Shirley) 記錄腳本開始執行的時間
-echo "$(date): 開始檢查更新" >> $LOG_FILE
+echo "$(date): 開始檢查更新" >> "$LOG_FILE"
 
 # Info: (20241016 - Shirley) 進入 app 目錄
-cd $APP_PATH
+cd "$APP_PATH" || { echo "無法進入應用程式目錄: $APP_PATH" >> "$LOG_FILE"; exit 1; }
+
+# Info: (20250207 - Shirley) 確認當前目錄是否為 git 倉庫
+if ! git rev-parse --git-dir > /dev/null 2>&1; then
+    echo "$(date): 錯誤 - 當前目錄不是 git 倉庫" >> "$LOG_FILE"
+    exit 1
+fi
+
+# Info: (20250207 - Shirley) 切換分支
+if ! git checkout "$TARGET_BRANCH"; then
+    echo "$(date): 錯誤 - 無法切換到分支 $TARGET_BRANCH" >> "$LOG_FILE"
+    exit 1
+fi
 
 # Info: (20241016 - Shirley) 獲取遠端更新
 if ! git fetch origin 2>>"$LOG_FILE"; then
@@ -50,22 +66,22 @@ if ! git fetch origin 2>>"$LOG_FILE"; then
 fi
 
 LOCAL_LAST_COMMIT=$(git rev-parse HEAD)
-REMOTE_LAST_COMMIT=$(git rev-parse origin/$TARGET_BRANCH)
+REMOTE_LAST_COMMIT=$(git rev-parse origin/"$TARGET_BRANCH")
 
 LAST_COMMIT_URL="$BASE_REPO_URL/commit/$REMOTE_LAST_COMMIT"
 
 LOCAL_VERSION=$(jq -r .version package.json)
-REMOTE_VERSION=$(git show origin/$TARGET_BRANCH:package.json | jq -r .version)
+REMOTE_VERSION=$(git show origin/"$TARGET_BRANCH":package.json | jq -r .version)
 
-echo "$(date) TIME_START (UTC): $TIME_START" >> $LOG_FILE
-echo "$(date) LOCAL_LAST_COMMIT: $LOCAL_LAST_COMMIT" >> $LOG_FILE
-echo "$(date) REMOTE_LAST_COMMIT: $REMOTE_LAST_COMMIT" >> $LOG_FILE
-echo "$(date) LOCAL_VERSION: $LOCAL_VERSION" >> $LOG_FILE
-echo "$(date) REMOTE_VERSION: $REMOTE_VERSION" >> $LOG_FILE
-echo "$(date): 目標分支: $TARGET_BRANCH" >> $LOG_FILE
+echo "$(date) TIME_START (UTC): $TIME_START" >> "$LOG_FILE"
+echo "$(date) LOCAL_LAST_COMMIT: $LOCAL_LAST_COMMIT" >> "$LOG_FILE"
+echo "$(date) REMOTE_LAST_COMMIT: $REMOTE_LAST_COMMIT" >> "$LOG_FILE"
+echo "$(date) LOCAL_VERSION: $LOCAL_VERSION" >> "$LOG_FILE"
+echo "$(date) REMOTE_VERSION: $REMOTE_VERSION" >> "$LOG_FILE"
+echo "$(date): 目標分支: $TARGET_BRANCH" >> "$LOG_FILE"
 
 if [ "$LOCAL_LAST_COMMIT" != "$REMOTE_LAST_COMMIT" ]; then
-    echo "$(date): 發現更新，開始拉取新代碼" >> $LOG_FILE
+    echo "$(date): 發現更新，開始拉取新代碼" >> "$LOG_FILE"
     LOADING_MESSAGE="🔄 \`$SERVER_NAME\` is in the process of building\nVersion: $REMOTE_VERSION\nBranch: $TARGET_BRANCH\nDetails: <$WEB_URL|web>｜<$REPO_URL|repo>｜<$LAST_COMMIT_URL|commit>"
     send_slack_message "$LOADING_MESSAGE"
 
@@ -73,23 +89,59 @@ if [ "$LOCAL_LAST_COMMIT" != "$REMOTE_LAST_COMMIT" ]; then
     # git config pull.rebase false
 
     {
-        git pull origin $TARGET_BRANCH
-        npm install
-        npm run build
-        pm2 restart $SERVER_NAME
-    } >> "$LOG_FILE" 2>&1
-    
-    if [ $? -eq 0 ]; then
-        echo "$(date): 更新完成" >> $LOG_FILE
-        IS_SUCCESS=true
+        git pull origin "$TARGET_BRANCH" >> "$LOG_FILE" 2>&1
+        if [ $? -ne 0 ]; then
+            echo "git pull 失敗" >> "$LOG_FILE"
+            exit 1
+        fi
+
+        npm install >> "$LOG_FILE" 2>&1
+        if [ $? -ne 0 ]; then
+            echo "npm install 失敗" >> "$LOG_FILE"
+            exit 1
+        fi
+
+        npm run build >> "$LOG_FILE" 2>&1
+        if [ $? -ne 0 ]; then
+            echo "npm run build 失敗" >> "$LOG_FILE"
+            exit 1
+        fi
+
+        pm2 restart "$SERVER_NAME" >> "$LOG_FILE" 2>&1
+        if [ $? -ne 0 ]; then
+            echo "pm2 restart 失敗" >> "$LOG_FILE"
+            exit 1
+        fi
+
+        API_RESPONSE_new=$(curl -s "http://localhost:$PORT/api/v2/status_info")
+        echo "API_RESPONSE, after pm2 restart immediately: $API_RESPONSE_new"
+
+        # Info: (20250207 - Shirley) 確認網站版本號是否更新成功
+        sleep 120
+        API_RESPONSE=$(curl -s "http://localhost:$PORT/api/v2/status_info")
+        SITE_VERSION=$(echo "$API_RESPONSE" | jq -r '.powerby' | grep -oP 'iSunFA \K[^ ]+' | sed 's/^v//')
+        echo "$(date): 網站版本號: $SITE_VERSION" >> "$LOG_FILE"
+
+        if [ "$SITE_VERSION" = "$REMOTE_VERSION" ]; then
+            echo "網站版本號與 package.json 相符" >> "$LOG_FILE"
+            IS_SUCCESS=true
+        else
+            echo "網站版本號與 package.json 不符" >> "$LOG_FILE"
+            IS_SUCCESS=false
+            exit 1
+        fi
+    }
+
+    if [ "$IS_SUCCESS" = true ]; then
+        echo "$(date): 更新完成" >> "$LOG_FILE"
         IS_NOTIFICATION_NEEDED=true
     else
-        echo "$(date): 更新失敗，詳細錯誤請參閱日誌文件。" >> $LOG_FILE
+        echo "$(date): 更新失敗，詳細錯誤請參閱日誌文件。" >> "$LOG_FILE"
         IS_SUCCESS=false
         IS_NOTIFICATION_NEEDED=true
     fi
 else
-    echo "$(date): 沒有發現更新" >> $LOG_FILE
+    echo "$(date): 沒有發現更新" >> "$LOG_FILE"
     IS_SUCCESS=true
     IS_NOTIFICATION_NEEDED=false
 fi
@@ -103,8 +155,8 @@ DURATION=$((SECONDS_END - SECONDS_START))
 # Info: (20241016 - Shirley) 將秒數轉換為小時:分鐘:秒格式
 DURATION_FORMATTED=$(printf '%02d:%02d:%02d' $((DURATION/3600)) $((DURATION%3600/60)) $((DURATION%60)))
 
-echo "$(date) TIME_END (UTC): $TIME_END" >> $LOG_FILE
-echo "$(date) 總執行時間: $DURATION_FORMATTED" >> $LOG_FILE
+echo "$(date) TIME_END (UTC): $TIME_END" >> "$LOG_FILE"
+echo "$(date) 總執行時間: $DURATION_FORMATTED" >> "$LOG_FILE"
 
 if [ "$IS_SUCCESS" = true ] && [ "$IS_NOTIFICATION_NEEDED" = true ]; then
     SUCCESS_MESSAGE="✅ \`$SERVER_NAME\` update successful!\nVersion: $REMOTE_VERSION\nBranch: $TARGET_BRANCH\nDuration: $DURATION_FORMATTED\nDetails: <$WEB_URL|web>｜<$REPO_URL|repo>｜<$LAST_COMMIT_URL|commit>"
@@ -116,5 +168,5 @@ else
     fi
 fi
 
-echo "$(date): 檢查更新結束" >> $LOG_FILE
-echo "----------------------------" >> $LOG_FILE
+echo "$(date): 檢查更新結束" >> "$LOG_FILE"
+echo "----------------------------" >> "$LOG_FILE"

@@ -21,7 +21,7 @@ services:
     image: node:20
     volumes:
       - ./isunfa:/isunfa
-      - ${HOME}/isunfa:${HOME}/isunfa
+      - /workspace/runtime/isunfa:${HOME}/isunfa
     command: >
       sh -c "chmod +x /isunfa/isunfa-start.sh && /isunfa/isunfa-start.sh"
     env_file:
@@ -41,10 +41,10 @@ services:
           memory: 4G
     healthcheck:
       test: ["CMD", "curl", "-f", "http://isunfa:${ISUNFA_PORT}"]
-      interval: 30s
-      timeout: 20s
-      retries: 3
-      start_period: 4m
+      interval: 60s
+      timeout: 30s
+      retries: 5
+      start_period: 10m
 
   faith:
     image: node:20
@@ -80,7 +80,7 @@ services:
     image: node:20
     volumes:
       - ./aich:/aich
-      - ${HOME}/AICH:${HOME}/AICH
+      - /workspace/runtime/AICH:${HOME}/AICH
     command: >
       sh -c "chmod +x /aich/aich-start.sh && /aich/aich-start.sh"
     env_file:
@@ -114,7 +114,7 @@ services:
       - ./ollama/.env.ollama
     entrypoint: ["/bin/sh", "-c"]
     command: >
-      "chmod +x /root/.ollama/ollama-start.sh && /root/.ollama/ollama-start.sh"
+      sh -c "chmod +x /root/.ollama/ollama-start.sh && /root/.ollama/ollama-start.sh"
 
   qdrant:
     image: qdrant/qdrant:v1.11.0
