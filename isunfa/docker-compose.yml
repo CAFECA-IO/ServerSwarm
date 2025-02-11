@@ -21,7 +21,7 @@ services:
     image: node:20
     volumes:
       - ./isunfa:/isunfa
-      - ${ISUNFA_FILE_PATH}/isunfa:${HOME}/isunfa
+      - ${ISUNFA_FILE_PATH}/isunfa:/home/node/isunfa
     command: >
       sh -c "chmod +x /isunfa/isunfa-start.sh && /isunfa/isunfa-start.sh"
     env_file:
@@ -80,7 +80,7 @@ services:
     image: node:20
     volumes:
       - ./aich:/aich
-      - ${AICH_FILE_PATH}/AICH:${HOME}/AICH
+      - ${AICH_FILE_PATH}/AICH:/home/node/AICH
     command: >
       sh -c "chmod +x /aich/aich-start.sh && /aich/aich-start.sh"
     env_file:
