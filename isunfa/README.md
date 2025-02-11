@@ -1,6 +1,9 @@
 本文說明如何在 linux / macOS 上透過 docker compose 運行 isunfa 集群
 
 - [如何使用 iSunFA server swarm](#如何使用-isunfa-server-swarm)
+  - [專案架構介紹](#專案架構介紹)
+    - [服務依賴關係](#服務依賴關係)
+    - [專案資料夾架構](#專案資料夾架構)
   - [系統要求](#系統要求)
     - [硬體要求](#硬體要求)
     - [軟體要求](#軟體要求)
@@ -29,6 +32,50 @@
   - [完成以上遷移後，在新的主機上運行 docker compose 啟動服務](#完成以上遷移後在新的主機上運行-docker-compose-啟動服務)
 
 # 如何使用 iSunFA server swarm
+
+## 專案架構介紹
+
+### 服務依賴關係
+
+![image](https://github.com/user-attachments/assets/68dc6e2b-be10-43fe-84c0-934bff524977)
+
+### 專案資料夾架構
+
+```
+.
+├── README.md
+├── aich
+│   ├── aich-start.sh
+│   ├── app
+│   └── check-update.sh
+├── docker-compose.cpu.yml
+├── docker-compose.gpu.yml
+├── docker-compose.yml
+├── faith
+│   ├── app
+│   ├── check-update.sh
+│   └── faith-start.sh
+├── isunfa
+│   ├── app
+│   ├── check-update.sh
+│   ├── isunfa-start.sh
+│   └── readme.md
+├── nginx
+│   ├── nginx.conf
+│   └── templates
+├── ofelia
+│   └── config.ini
+├── ollama
+│   ├── id_ed25519
+│   ├── id_ed25519.pub
+│   ├── models
+│   └── ollama-start.sh
+├── postgres
+│   └── data
+└── qdrant
+    ├── config
+    └── qdrant_data
+```
 
 ## 系統要求
 
