@@ -43,8 +43,12 @@
 
 ```
 .
+├── .env
+├── .env.sample
 ├── README.md
 ├── aich
+│   ├── .env.aich
+│   ├── .env.aich.sample
 │   ├── aich-start.sh
 │   ├── app
 │   └── check-update.sh
@@ -52,25 +56,35 @@
 ├── docker-compose.gpu.yml
 ├── docker-compose.yml
 ├── faith
+│   ├── .env.faith
+│   ├── .env.faith.sample
 │   ├── app
 │   ├── check-update.sh
 │   └── faith-start.sh
 ├── isunfa
+│   ├── .env.isunfa
+│   ├── .env.isunfa.sample
 │   ├── app
 │   ├── check-update.sh
 │   ├── isunfa-start.sh
 │   └── readme.md
 ├── nginx
+│   ├── .env.nginx
+│   ├── .env.nginx.sample
 │   ├── nginx.conf
 │   └── templates
 ├── ofelia
 │   └── config.ini
 ├── ollama
+│   ├── .env.ollama
+│   ├── .env.ollama.sample
 │   ├── id_ed25519
 │   ├── id_ed25519.pub
 │   ├── models
 │   └── ollama-start.sh
 ├── postgres
+│   ├── .env.postgres
+│   ├── .env.postgres.sample
 │   └── data
 └── qdrant
     ├── config
