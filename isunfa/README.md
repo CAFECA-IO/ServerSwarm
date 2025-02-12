@@ -40,7 +40,14 @@ ServerSwarm 的 iSunFA 是一個旨在透過 Docker Compose 在 Linux 和 macOS 
 
 ### container dependency
 
-![image](https://github.com/user-attachments/assets/68dc6e2b-be10-43fe-84c0-934bff524977)
+- nginx (前端 Proxy 入口)
+- isunfa / faith / aich (Node.js 服務)
+- ollama (LLM 推理服務，可搭配 GPU 或 CPU)
+- qdrant (向量資料庫)
+- postgres (關聯式資料庫)
+- ofelia (排程 / 自動更新管理)
+
+![image](https://github.com/user-attachments/assets/66bc2152-5e70-46d0-9d68-e8eaaf332b3e)
 
 ### 專案資料夾架構
 
