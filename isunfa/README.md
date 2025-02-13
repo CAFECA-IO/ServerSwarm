@@ -1,8 +1,8 @@
-本文說明如何在 linux / macOS 上透過 docker compose 運行 isunfa 集群
+Table of Contents
 
-- [如何使用 iSunFA server swarm](#如何使用-isunfa-server-swarm)
-  - [專案架構介紹](#專案架構介紹)
-    - [服務依賴關係](#服務依賴關係)
+- [如何使用 Server Swarm 的 iSunFA 集群](#如何使用-server-swarm-的-isunfa-集群)
+  - [專案介紹](#專案介紹)
+    - [container dependency](#container-dependency)
     - [專案資料夾架構](#專案資料夾架構)
   - [系統要求](#系統要求)
     - [硬體要求](#硬體要求)
@@ -25,26 +25,40 @@
 - [遷移 iSunFA 服務集群](#遷移-isunfa-服務集群)
   - [遷移應用程式](#遷移應用程式)
   - [遷移資料庫](#遷移資料庫)
-    - [複製舊系統資料庫](#複製舊系統資料庫)
-    - [將舊資料庫貼到新系統資料庫上](#將舊資料庫貼到新系統資料庫上)
+    - [備份舊系統資料庫](#備份舊系統資料庫)
+    - [將舊資料庫還原到新系統資料庫上](#將舊資料庫還原到新系統資料庫上)
     - [確認是否備份成功](#確認是否備份成功)
   - [遷移媒體文件](#遷移媒體文件)
   - [完成以上遷移後，在新的主機上運行 docker compose 啟動服務](#完成以上遷移後在新的主機上運行-docker-compose-啟動服務)
 
-# 如何使用 iSunFA server swarm
+# 如何使用 Server Swarm 的 iSunFA 集群
 
-## 專案架構介紹
+## 專案介紹
 
-### 服務依賴關係
+ServerSwarm 的 iSunFA 是一個旨在透過 Docker Compose 在 Linux 和 macOS 上部署和管理 iSunFA 集群的全面解決方案。
+該專案提供了一套完整的服務架構，使得用戶能夠輕鬆地運行、維護和擴展 iSunFA 服務，無論是在開發環境還是生產環境中。透過 ServerSwarm，您可以快速設置必要的服務，確保系統的穩定性和可擴展性，同時簡化了複雜的部署流程。
 
-![image](https://github.com/user-attachments/assets/68dc6e2b-be10-43fe-84c0-934bff524977)
+### container dependency
+
+- nginx (前端 Proxy 入口)
+- isunfa / faith / aich (Node.js 服務)
+- ollama (LLM 推理服務，可搭配 GPU 或 CPU)
+- qdrant (向量資料庫)
+- postgres (關聯式資料庫)
+- ofelia (排程 / 自動更新管理)
+
+![image](https://github.com/user-attachments/assets/66bc2152-5e70-46d0-9d68-e8eaaf332b3e)
 
 ### 專案資料夾架構
 
 ```
 .
+├── .env
+├── .env.sample
 ├── README.md
 ├── aich
+│   ├── .env.aich
+│   ├── .env.aich.sample
 │   ├── aich-start.sh
 │   ├── app
 │   └── check-update.sh
@@ -52,25 +66,35 @@
 ├── docker-compose.gpu.yml
 ├── docker-compose.yml
 ├── faith
+│   ├── .env.faith
+│   ├── .env.faith.sample
 │   ├── app
 │   ├── check-update.sh
 │   └── faith-start.sh
 ├── isunfa
+│   ├── .env.isunfa
+│   ├── .env.isunfa.sample
 │   ├── app
 │   ├── check-update.sh
 │   ├── isunfa-start.sh
 │   └── readme.md
 ├── nginx
+│   ├── .env.nginx
+│   ├── .env.nginx.sample
 │   ├── nginx.conf
 │   └── templates
 ├── ofelia
 │   └── config.ini
 ├── ollama
+│   ├── .env.ollama
+│   ├── .env.ollama.sample
 │   ├── id_ed25519
 │   ├── id_ed25519.pub
 │   ├── models
 │   └── ollama-start.sh
 ├── postgres
+│   ├── .env.postgres
+│   ├── .env.postgres.sample
 │   └── data
 └── qdrant
     ├── config
@@ -600,7 +624,7 @@ cd isunfa
 
 透過 PostgreSQL 官方提供的工具，去備份跟恢復整個資料庫，包含 data, auto increment, schema
 
-### 複製舊系統資料庫
+### 備份舊系統資料庫
 
 - 在本地終端機執行以下指令去備份舊系統的資料庫
 
@@ -609,7 +633,7 @@ pg_dump -U <your_username> -h <old_host_ip> -p <old_port> -F c -b -v -f old_db_b
 
 ```
 
-### 將舊資料庫貼到新系統資料庫上
+### 將舊資料庫還原到新系統資料庫上
 
 - 透過 docker 單獨開 postgres container，避免 docker-compose.yml 裡其他 container 去初始化、seed postgres；如果資料庫不是空的，會造成備份失敗
 
