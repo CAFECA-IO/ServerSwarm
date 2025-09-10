@@ -18,7 +18,7 @@ services:
           memory: 256M
 
   isunfa:
-    image: node:20
+    image: node:20.19.5
     volumes:
       - ./isunfa:/isunfa
       - ${ISUNFA_FILE_PATH}/isunfa:/home/node/isunfa
@@ -61,8 +61,8 @@ services:
     depends_on:
       aich:
         condition: service_healthy
-      ollama:
-        condition: service_started
+      # ollama:
+      #   condition: service_started
       qdrant:
         condition: service_started
     deploy:
@@ -90,7 +90,7 @@ services:
     expose:
       - "${AICH_PORT}"
     depends_on:
-      - ollama
+      # - ollama
       - qdrant
     deploy:
       resources:
@@ -103,18 +103,18 @@ services:
       retries: 3
       start_period: 2m
 
-  ollama:
-    image: ollama/ollama:0.3.6
-    volumes:
-      - ./ollama:/root/.ollama
-    restart: always
-    expose:
-      - "${OLLAMA_PORT}"
-    env_file:
-      - ./ollama/.env.ollama
-    entrypoint: ["/bin/sh", "-c"]
-    command: >
-      sh -c "chmod +x /root/.ollama/ollama-start.sh && /root/.ollama/ollama-start.sh"
+  # ollama:
+  #   image: ollama/ollama:0.3.6
+  #   volumes:
+  #     - ./ollama:/root/.ollama
+  #   restart: always
+  #   expose:
+  #     - "${OLLAMA_PORT}"
+  #   env_file:
+  #     - ./ollama/.env.ollama
+  #   entrypoint: ["/bin/sh", "-c"]
+  #   command: >
+  #     sh -c "chmod +x /root/.ollama/ollama-start.sh && /root/.ollama/ollama-start.sh"
 
   qdrant:
     image: qdrant/qdrant:v1.11.0
@@ -148,6 +148,27 @@ services:
         limits:
           memory: 1G
 
+  ipfs-node:
+    image: ipfs/go-ipfs:latest
+    container_name: ipfs-node
+    restart: unless-stopped
+    ports:
+      - "${IPFS_SWARM_PORT:-4001}:4001"
+      - "${IPFS_API_PORT:-5001}:5001"
+      - "${IPFS_GATEWAY_PORT:-8080}:8080"
+    volumes:
+      - ipfs_data:/data/ipfs
+      - ./ipfs/swarm.key:/data/ipfs/swarm.key:ro
+    env_file:
+      - ./ipfs/.env.ipfs
+    environment:
+      - IPFS_PROFILE=server
+    command: daemon --migrate=true --enable-pubsub-experiment
+    deploy:
+      resources:
+        limits:
+          memory: 3G
+
   ofelia:
     image: mcuadros/ofelia:latest
     container_name: ofelia
@@ -170,6 +191,9 @@ services:
       resources:
         limits:
           memory: 1G
+
+volumes:
+  ipfs_data:
 
 configs:
   qdrant_config:

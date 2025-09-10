@@ -2,7 +2,8 @@
 x-deploy-cpu: &cpu-config
   resources:
     limits:
-      memory: 17G
+      # memory: 17G
+      memory: 1G
 
 services:
   ollama:
