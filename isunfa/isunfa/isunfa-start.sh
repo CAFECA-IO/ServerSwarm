@@ -4,7 +4,7 @@
 # 如果目錄已經存在，則會失敗並執行後面的命令
 # git clone https://github.com/CAFECA-IO/iSunFA.git -b v0.8.0 --single-branch /isunfa/app || (cd /isunfa/app && git pull origin main)
 # git clone https://github.com/CAFECA-IO/iSunFA.git /isunfa/app || (cd /isunfa/app && git pull origin main)
-(git clone https://github.com/CAFECA-IO/iSunFA.git /isunfa/app && cd /isunfa/app && git checkout $TARGET_BRANCH) || (cd /isunfa/app && git config --global --add safe.directory /isunfa/app && git checkout $TARGET_BRANCH && git pull)
+(git clone https://github.com/CAFECA-IO/iSunFA.git /isunfa/app && cd /isunfa/app && git checkout $TARGET_BRANCH) || (cd /isunfa/app && git checkout $TARGET_BRANCH && git pull)
 
 # Info: (20240821 - Jacky) 進入 /isunfa/app 目錄並安裝依賴（假設是 Node.js 應用）
 cd /isunfa/app && npm install
