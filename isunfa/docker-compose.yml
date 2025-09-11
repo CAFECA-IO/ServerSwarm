@@ -18,7 +18,7 @@ services:
           memory: 256M
 
   isunfa:
-    image: node:20.19.5
+    image: node:20
     volumes:
       - ./isunfa:/isunfa
       - ${ISUNFA_FILE_PATH}/isunfa:/home/node/isunfa
