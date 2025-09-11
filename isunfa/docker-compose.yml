@@ -8,8 +8,8 @@ services:
       - ./nginx/templates:/etc/nginx/templates
     env_file:
       - ./nginx/.env.nginx
-    # depends_on:
-      # - isunfa
+    depends_on:
+      - isunfa
       # - faith
       # - aich
     deploy:
@@ -17,34 +17,32 @@ services:
         limits:
           memory: 256M
 
-  # isunfa:
-  #   image: node:20.19.5
-  #   volumes:
-  #     - ./isunfa:/isunfa
-  #     - ${ISUNFA_FILE_PATH}/isunfa:/home/node/isunfa
-  #   command: >
-  #     sh -c "chmod +x /isunfa/isunfa-start.sh && /isunfa/isunfa-start.sh"
-  #   env_file:
-  #     - ./isunfa/.env.isunfa
-  #   environment:
-  #     - PORT=${ISUNFA_PORT}
-  #   expose:
-  #     - "${ISUNFA_PORT}"
-  #   depends_on:
-  #     aich:
-  #       condition: service_healthy
-  #     postgres:
-  #       condition: service_started
-  #   deploy:
-  #     resources:
-  #       limits:
-  #         memory: 4G
-  #   healthcheck:
-  #     test: ["CMD", "curl", "-f", "http://isunfa:${ISUNFA_PORT}"]
-  #     interval: 60s
-  #     timeout: 30s
-  #     retries: 5
-  #     start_period: 10m
+  isunfa:
+    image: node:20.19.5
+    volumes:
+      - ./isunfa:/isunfa
+      - ${ISUNFA_FILE_PATH}/isunfa:/home/node/isunfa
+    command: >
+      sh -c "chmod +x /isunfa/isunfa-start.sh && /isunfa/isunfa-start.sh"
+    env_file:
+      - ./isunfa/.env.isunfa
+    environment:
+      - PORT=${ISUNFA_PORT}
+    expose:
+      - "${ISUNFA_PORT}"
+    depends_on:
+      postgres:
+        condition: service_started
+    deploy:
+      resources:
+        limits:
+          memory: 6G
+    healthcheck:
+      test: ["CMD", "curl", "-f", "http://isunfa:${ISUNFA_PORT}"]
+      interval: 60s
+      timeout: 30s
+      retries: 5
+      start_period: 10m
 
   # faith:
   #   image: node:20
@@ -137,7 +135,7 @@ services:
       - "${POSTGRES_PORT}:${POSTGRES_PORT}"
     restart: always
     volumes:
-      - ./postgres/data:/var/lib/postgresql/data
+      - postgres_data:/var/lib/postgresql/data
     env_file:
       - ./postgres/.env.postgres
     command: -c listen_addresses='*'
@@ -181,11 +179,11 @@ services:
       - TZ=Asia/Taipei
     command: >
       daemon --config=/etc/ofelia/config.ini
-    # depends_on:
+    depends_on:
       # aich:
       #   condition: service_healthy
-      # isunfa:
-      #   condition: service_healthy
+      isunfa:
+        condition: service_healthy
       # faith:
       #   condition: service_healthy
     deploy:
@@ -195,6 +193,7 @@ services:
 
 volumes:
   ipfs_data:
+  postgres_data:
 
 configs:
   qdrant_config:
