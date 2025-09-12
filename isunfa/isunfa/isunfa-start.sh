@@ -1,5 +1,9 @@
 #!/bin/bash
 
+# Info: (20250912 - Shirley) 改為 node:22 之後要額外安裝的套件
+apt update
+apt install -y build-essential libcairo2-dev libpango1.0-dev libjpeg-dev libgif-dev librsvg2-dev
+
 # Info: (20240821 - Jacky) 嘗試克隆 Git 倉庫到 /isunfa/app 目錄
 # 如果目錄已經存在，則會失敗並執行後面的命令
 # git clone https://github.com/CAFECA-IO/iSunFA.git -b v0.8.0 --single-branch /isunfa/app || (cd /isunfa/app && git pull origin main)

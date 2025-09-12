@@ -10,15 +10,15 @@ services:
       - ./nginx/.env.nginx
     depends_on:
       - isunfa
-      - faith
-      - aich
+      # - faith
+      # - aich
     deploy:
       resources:
         limits:
           memory: 256M
 
   isunfa:
-    image: node:20
+    image: node:22
     volumes:
       - ./isunfa:/isunfa
       - ${ISUNFA_FILE_PATH}/isunfa:/home/node/isunfa
@@ -31,14 +31,12 @@ services:
     expose:
       - "${ISUNFA_PORT}"
     depends_on:
-      aich:
-        condition: service_healthy
       postgres:
         condition: service_started
     deploy:
       resources:
         limits:
-          memory: 4G
+          memory: 6G
     healthcheck:
       test: ["CMD", "curl", "-f", "http://isunfa:${ISUNFA_PORT}"]
       interval: 60s
@@ -46,90 +44,90 @@ services:
       retries: 5
       start_period: 10m
 
-  faith:
-    image: node:20
-    volumes:
-      - ./faith:/faith
-    command: >
-      sh -c "chmod +x /faith/faith-start.sh && /faith/faith-start.sh"
-    env_file:
-      - ./faith/.env.faith
-    environment:
-      - PORT=${FAITH_PORT}
-    expose:
-      - "${FAITH_PORT}"
-    depends_on:
-      aich:
-        condition: service_healthy
-      ollama:
-        condition: service_started
-      qdrant:
-        condition: service_started
-    deploy:
-      resources:
-        limits:
-          memory: 1G
-    healthcheck:
-      test: ["CMD", "curl", "-f", "http://faith:${FAITH_PORT}"]
-      interval: 30s
-      timeout: 20s
-      retries: 3
-      start_period: 2m
+  # faith:
+  #   image: node:20
+  #   volumes:
+  #     - ./faith:/faith
+  #   command: >
+  #     sh -c "chmod +x /faith/faith-start.sh && /faith/faith-start.sh"
+  #   env_file:
+  #     - ./faith/.env.faith
+  #   environment:
+  #     - PORT=${FAITH_PORT}
+  #   expose:
+  #     - "${FAITH_PORT}"
+  #   depends_on:
+  #     aich:
+  #       condition: service_healthy
+  #     # ollama:
+  #     #   condition: service_started
+  #     qdrant:
+  #       condition: service_started
+  #   deploy:
+  #     resources:
+  #       limits:
+  #         memory: 1G
+  #   healthcheck:
+  #     test: ["CMD", "curl", "-f", "http://faith:${FAITH_PORT}"]
+  #     interval: 30s
+  #     timeout: 20s
+  #     retries: 3
+  #     start_period: 2m
 
-  aich:
-    image: node:20
-    volumes:
-      - ./aich:/aich
-      - ${AICH_FILE_PATH}/AICH:/home/node/AICH
-    command: >
-      sh -c "chmod +x /aich/aich-start.sh && /aich/aich-start.sh"
-    env_file:
-      - ./aich/.env.aich
-    environment:
-      - PORT=${AICH_PORT}
-    expose:
-      - "${AICH_PORT}"
-    depends_on:
-      - ollama
-      - qdrant
-    deploy:
-      resources:
-        limits:
-          memory: 2G
-    healthcheck:
-      test: ["CMD", "curl", "-f", "http://aich:${AICH_PORT}"]
-      interval: 30s
-      timeout: 20s
-      retries: 3
-      start_period: 2m
+  # aich:
+  #   image: node:20
+  #   volumes:
+  #     - ./aich:/aich
+  #     - ${AICH_FILE_PATH}/AICH:/home/node/AICH
+  #   command: >
+  #     sh -c "chmod +x /aich/aich-start.sh && /aich/aich-start.sh"
+  #   env_file:
+  #     - ./aich/.env.aich
+  #   environment:
+  #     - PORT=${AICH_PORT}
+  #   expose:
+  #     - "${AICH_PORT}"
+  #   depends_on:
+  #     # - ollama
+  #     - qdrant
+  #   deploy:
+  #     resources:
+  #       limits:
+  #         memory: 2G
+  #   healthcheck:
+  #     test: ["CMD", "curl", "-f", "http://aich:${AICH_PORT}"]
+  #     interval: 30s
+  #     timeout: 20s
+  #     retries: 3
+  #     start_period: 2m
 
-  ollama:
-    image: ollama/ollama:0.3.6
-    volumes:
-      - ./ollama:/root/.ollama
-    restart: always
-    expose:
-      - "${OLLAMA_PORT}"
-    env_file:
-      - ./ollama/.env.ollama
-    entrypoint: ["/bin/sh", "-c"]
-    command: >
-      sh -c "chmod +x /root/.ollama/ollama-start.sh && /root/.ollama/ollama-start.sh"
+  # ollama:
+  #   image: ollama/ollama:0.3.6
+  #   volumes:
+  #     - ./ollama:/root/.ollama
+  #   restart: always
+  #   expose:
+  #     - "${OLLAMA_PORT}"
+  #   env_file:
+  #     - ./ollama/.env.ollama
+  #   entrypoint: ["/bin/sh", "-c"]
+  #   command: >
+  #     sh -c "chmod +x /root/.ollama/ollama-start.sh && /root/.ollama/ollama-start.sh"
 
-  qdrant:
-    image: qdrant/qdrant:v1.11.0
-    restart: always
-    expose:
-      - "${QDRANT_PORT}"
-    configs:
-      - source: qdrant_config
-        target: /qdrant/config/production.yaml
-    volumes:
-      - ./qdrant/qdrant_data:/qdrant/storage
-    deploy:
-      resources:
-        limits:
-          memory: 1G
+  # qdrant:
+  #  image: qdrant/qdrant:v1.11.0
+  #  restart: always
+  #  expose:
+  #    - "${QDRANT_PORT}"
+  #  configs:
+  #    - source: qdrant_config
+  #      target: /qdrant/config/production.yaml
+  #  volumes:
+  #    - ./qdrant/qdrant_data:/qdrant/storage
+  #  deploy:
+  #    resources:
+  #      limits:
+  #        memory: 1G
 
   postgres:
     image: postgres:16
@@ -137,7 +135,7 @@ services:
       - "${POSTGRES_PORT}:${POSTGRES_PORT}"
     restart: always
     volumes:
-      - ./postgres/data:/var/lib/postgresql/data
+      - postgres_data:/var/lib/postgresql/data
     env_file:
       - ./postgres/.env.postgres
     command: -c listen_addresses='*'
@@ -147,6 +145,27 @@ services:
       resources:
         limits:
           memory: 1G
+
+  ipfs-node:
+    image: ipfs/go-ipfs:latest
+    container_name: ipfs-node
+    restart: unless-stopped
+    ports:
+      - "${IPFS_SWARM_PORT}:${IPFS_SWARM_PORT}"
+      - "${IPFS_API_PORT}:${IPFS_API_PORT}"
+      - "${IPFS_GATEWAY_PORT}:${IPFS_GATEWAY_PORT}"
+    volumes:
+      - ipfs_data:/data/ipfs
+      - ./ipfs/swarm.key:/data/ipfs/swarm.key:ro
+    env_file:
+      - ./ipfs/.env.ipfs
+    environment:
+      - IPFS_PROFILE=server
+    command: daemon --migrate=true --enable-pubsub-experiment
+    deploy:
+      resources:
+        limits:
+          memory: 3G
 
   ofelia:
     image: mcuadros/ofelia:latest
@@ -160,18 +179,17 @@ services:
     command: >
       daemon --config=/etc/ofelia/config.ini
     depends_on:
-      aich:
-        condition: service_healthy
+      # aich:
+      #   condition: service_healthy
       isunfa:
         condition: service_healthy
-      faith:
-        condition: service_healthy
+      # faith:
+      #   condition: service_healthy
     deploy:
       resources:
         limits:
           memory: 1G
 
-configs:
-  qdrant_config:
-    content: |
-      log_level: INFO
+volumes:
+  ipfs_data:
+  postgres_data:
