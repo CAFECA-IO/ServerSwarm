@@ -137,7 +137,7 @@ services:
       - "${POSTGRES_PORT}:${POSTGRES_PORT}"
     restart: always
     volumes:
-      - postgres_data:/var/lib/postgresql/data
+      - ./postgres/data:/var/lib/postgresql/data
     env_file:
       - ./postgres/.env.postgres
     command: -c listen_addresses='*'
