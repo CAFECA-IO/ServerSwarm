@@ -504,6 +504,11 @@ docker compose up -d
 
 **解決步驟：**
 
+0. 暫停 IPFS 容器
+```bash
+docker stop ipfs-node
+```
+
 1. 停用 AutoConf 功能 & URL 清空
 ```bash
 docker run --rm -v isunfa_ipfs_data:/data/ipfs ipfs/kubo:latest \
@@ -536,29 +541,13 @@ docker run --rm -v isunfa_ipfs_data:/data/ipfs ipfs/kubo:latest \
 config show | grep -n '"auto"' || echo "OK: 沒有 'auto' 佔位符"
 ```
 
-**注意事項：**
-- 執行以上命令前請確保 IPFS 容器已停止
-- 這些配置變更適用於私有網路環境
-- 如果問題持續存在，可以刪除 IPFS 數據卷重新初始化：
+4. 繼續啟動服務
 ```bash
-docker compose down
-docker volume rm isunfa_ipfs_data
 docker compose up -d
 ```
 
-- 檢查是否把 auto 都移除成功
-
-   ```bash
-   docker run --rm -v isunfa_ipfs_data:/data/ipfs ipfs/kubo:latest \
-     config show | grep -n '"auto"' || echo "OK: no 'auto' placeholders"
-   ```
-
-- 啟動 swarm-storage-ipfs container 並查看 log
-
-   ```bash
-   docker start swarm-storage-ipfs
-   docker logs --tail=80 -f swarm-storage-ipfs
-   ```
+**注意事項：**
+- 這些配置變更適用於私有網路環境
 
 ## 驗證是否成功啟動主服務 isunfa
 
