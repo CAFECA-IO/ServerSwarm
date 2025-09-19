@@ -31,32 +31,32 @@ server {
     }
 }
 
-server {
-    listen ${NGINX_PORT};
-    server_name ${AICH_SERVER_NAME};
+# server {
+#     listen ${NGINX_PORT};
+#     server_name ${AICH_SERVER_NAME};
+# 
+#     location / {
+#         proxy_pass ${AICH_DOCKER_URL};
+#         proxy_buffering off;
+#         proxy_set_header Host $host;
+#         proxy_set_header X-Real-IP $remote_addr;
+#         proxy_set_header X-Forwarded-For $proxy_add_x_forwarded_for;
+#         proxy_set_header X-Forwarded-Proto $scheme;
+#         proxy_set_header Cookie $http_cookie;
+#         proxy_cache_bypass $http_upgrade;
+#     }
+# }
 
-    location / {
-        proxy_pass ${AICH_DOCKER_URL};
-        proxy_buffering off;
-        proxy_set_header Host $host;
-        proxy_set_header X-Real-IP $remote_addr;
-        proxy_set_header X-Forwarded-For $proxy_add_x_forwarded_for;
-        proxy_set_header X-Forwarded-Proto $scheme;
-        proxy_set_header Cookie $http_cookie;
-        proxy_cache_bypass $http_upgrade;
-    }
-}
-
-server {
-    listen ${NGINX_PORT};
-    server_name ${FAITH_SERVER_NAME};
-    location / {
-        proxy_pass ${FAITH_DOCKER_URL};
-        proxy_set_header Host $host;
-        proxy_set_header X-Real-IP $remote_addr;
-        proxy_set_header X-Forwarded-For $proxy_add_x_forwarded_for;
-        proxy_set_header X-Forwarded-Proto $scheme;
-        proxy_set_header Cookie $http_cookie;
-        proxy_cache_bypass $http_upgrade;
-    }
-}
+# server {
+#     listen ${NGINX_PORT};
+#     server_name ${FAITH_SERVER_NAME};
+#     location / {
+#         proxy_pass ${FAITH_DOCKER_URL};
+#         proxy_set_header Host $host;
+#         proxy_set_header X-Real-IP $remote_addr;
+#         proxy_set_header X-Forwarded-For $proxy_add_x_forwarded_for;
+#         proxy_set_header X-Forwarded-Proto $scheme;
+#         proxy_set_header Cookie $http_cookie;
+#         proxy_cache_bypass $http_upgrade;
+#     }
+# }
