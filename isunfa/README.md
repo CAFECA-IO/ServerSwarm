@@ -16,8 +16,10 @@ Table of Contents
   - [設置 domain](#設置-domain)
   - [自動更新 docker container 裡的服務](#自動更新-docker-container-裡的服務)
   - [啟動 docker compose](#啟動-docker-compose)
-  - [驗證是否成功啟動](#驗證是否成功啟動)
-    - [檢查是否成功使用 GPU （可選）](#檢查是否成功使用-gpu-可選)
+  - [IPFS 啟動配置問題排除](#ipfs-啟動配置問題排除)
+  - [驗證是否成功啟動主服務 isunfa](#驗證是否成功啟動主服務-isunfa)
+    - [檢查服務狀態](#檢查服務狀態)
+    - [檢查是否成功使用 GPU （可選，需先啟用 AI 服務）](#檢查是否成功使用-gpu-可選需先啟用-ai-服務)
   - [其他處理情境](#其他處理情境)
     - [重啟單一容器](#重啟單一容器)
     - [更新單一服務的內容](#更新單一服務的內容)
@@ -41,11 +43,15 @@ ServerSwarm 的 iSunFA 是一個旨在透過 Docker Compose 在 Linux 和 macOS 
 ### container dependency
 
 - nginx (前端 Proxy 入口)
-- isunfa / faith / aich (Node.js 服務)
-- ollama (LLM 推理服務，可搭配 GPU 或 CPU)
-- qdrant (向量資料庫)
+- isunfa (Node.js 服務)
 - postgres (關聯式資料庫)
 - ofelia (排程 / 自動更新管理)
+
+**目前已停用的服務** (在 docker-compose.yml 中被註解):
+- faith (AI 聊天介面)
+- aich (AI 處理服務)
+- ollama (LLM 推理服務)
+- qdrant (向量資料庫)
 
 ![image](https://github.com/user-attachments/assets/66bc2152-5e70-46d0-9d68-e8eaaf332b3e)
 
@@ -56,7 +62,7 @@ ServerSwarm 的 iSunFA 是一個旨在透過 Docker Compose 在 Linux 和 macOS 
 ├── .env
 ├── .env.sample
 ├── README.md
-├── aich
+├── aich (已停用)
 │   ├── .env.aich
 │   ├── .env.aich.sample
 │   ├── aich-start.sh
@@ -65,7 +71,7 @@ ServerSwarm 的 iSunFA 是一個旨在透過 Docker Compose 在 Linux 和 macOS 
 ├── docker-compose.cpu.yml
 ├── docker-compose.gpu.yml
 ├── docker-compose.yml
-├── faith
+├── faith (已停用)
 │   ├── .env.faith
 │   ├── .env.faith.sample
 │   ├── app
@@ -85,18 +91,18 @@ ServerSwarm 的 iSunFA 是一個旨在透過 Docker Compose 在 Linux 和 macOS 
 │   └── templates
 ├── ofelia
 │   └── config.ini
-├── ollama
+├── postgres
+│   ├── .env.postgres
+│   ├── .env.postgres.sample
+│   └── data
+├── ollama (已停用)
 │   ├── .env.ollama
 │   ├── .env.ollama.sample
 │   ├── id_ed25519
 │   ├── id_ed25519.pub
 │   ├── models
 │   └── ollama-start.sh
-├── postgres
-│   ├── .env.postgres
-│   ├── .env.postgres.sample
-│   └── data
-└── qdrant
+└── qdrant (已停用)
     ├── config
     └── qdrant_data
 ```
@@ -112,7 +118,7 @@ ServerSwarm 的 iSunFA 是一個旨在透過 Docker Compose 在 Linux 和 macOS 
 3. 儲存
    1. SSD 儲存設備，至少 500 GB 可用空間
 4. GPU （可選）
-   1. 需配備 NVIDIA GPU，如果沒有的話，則使用 docker-compose.cpu.yml 去運行服務，如果有 GPU 則使用 docker-compose.gpu.yml
+   1. 需配備 NVIDIA GPU，如果沒有的話，則使用 docker-compose.cpu.yml 去運行服務，如果有 GPU 則使用 docker-compose.gpu.yml (已停用)
 
 ### 軟體要求
 
@@ -334,30 +340,56 @@ cd isunfa
 ```
 cp ./.env.sample ./.env
 cp ./isunfa/.env.isunfa.sample ./isunfa/.env.isunfa
+cp ./nginx/.env.nginx.sample ./nginx/.env.nginx
+cp ./postgres/.env.postgres.sample ./postgres/.env.postgres
+cp ./ipfs/.env.ipfs.sample ./ipfs/.env.ipfs
+
+# 已停用服務的環境變數檔案 (如需啟用可複製)
 cp ./faith/.env.faith.sample ./faith/.env.faith
 cp ./aich/.env.aich.sample ./aich/.env.aich
-cp ./nginx/.env.nginx.sample ./nginx/.env.nginx
 cp ./ollama/.env.ollama.sample ./ollama/.env.ollama
-cp ./postgres/.env.postgres.sample ./postgres/.env.postgres
 ```
 
 - `.env` 的階層
   - 在 `./.env` 的設定伺服器群的參數，會影響到其他機器的參數，如果機器資料夾下的 `.env` 有設定同樣的參數名稱的不同值，就會覆蓋掉 `./.env` 的參數
   - 除了個別填寫 .env 欄位之外，以下參數的修改需要特別注意：
+**目前使用的服務配置：**
+
 - .env.isunfa 特別注意的欄位
   - 其中 `DATABASE_URL` 會用到 `.env.postgres` ，為 `postgresql://${POSTGRES_USER}:${POSTGRES_PASSWORD}@${HOST_IP}:${POSTGRES_PORT}/${POSTGRES_DB}`
 
 ```
 NEXTAUTH_URL = https://<ISUNFA_DOMAIN>
-AICH_URI = https://<AICH_DOMAIN>
 DATABASE_URL = <DATABASE_URL>
 ```
+
+- .env.nginx 特別注意的欄位
+
+```
+ISUNFA_SERVER_NAME=<ISUNFA_DOMAIN>
+```
+
+例如
+
+```
+ISUNFA_SERVER_NAME=isunfa.com
+```
+
+- .env.ipfs 特別注意的欄位
+
+```
+IPFS_SWARM_PORT=4001    # IPFS P2P 通訊 port
+IPFS_API_PORT=5001      # IPFS API 服務 port
+IPFS_GATEWAY_PORT=8080  # IPFS HTTP Gateway port
+```
+
+
+**已停用服務的配置 (如需啟用可參考)：**
 
 - .env.faith 特別注意的欄位
 
 ```
 NEXT_PUBLIC_AICH_URL=https://<AICH_DOMAIN>
-
 ```
 
 - .env.aich 特別注意的欄位
@@ -365,25 +397,13 @@ NEXT_PUBLIC_AICH_URL=https://<AICH_DOMAIN>
 ```
 OLLAMA_HOST=http://ollama:11434
 QDRANT_HOST=http://qdrant:6333
-
 ```
 
-- .env.nginx 特別注意的欄位
+- .env.nginx 額外的服務名稱
 
 ```
-ISUNFA_SERVER_NAME=<ISUNFA_DOMAIN>
 AICH_SERVER_NAME=<AICH_DOMAIN>
 FAITH_SERVER_NAME=<FAITH_DOMAIN>
-
-```
-
-例如
-
-```
-ISUNFA_SERVER_NAME=isunfa.com
-AICH_SERVER_NAME=aich.isunfa.com
-FAITH_SERVER_NAME=faith.isunfa.com
-
 ```
 
 ## 設置 domain
@@ -397,14 +417,21 @@ FAITH_SERVER_NAME=faith.isunfa.com
 
    ```
 
-2. 在文件末尾添加以下行，將 `<HOST_IP>` 替換為您的主機 IP 地址，將 `<ISUNFA_DOMAIN>`、`<AICH_DOMAIN>` 和 `<FAITH_DOMAIN>` 替換為您在 `.env.nginx` 文件中設置的相應域名：
+2. 在文件末尾添加以下行，將 `<HOST_IP>` 替換為您的主機 IP 地址，將 `<ISUNFA_DOMAIN>` 替換為您在 `.env.nginx` 文件中設置的域名：
 
    ```
-   <HOST_IP> <ISUNFA_DOMAIN> <AICH_DOMAIN> <FAITH_DOMAIN>
+   <HOST_IP> <ISUNFA_DOMAIN>
 
    ```
 
    例如：
+
+   ```
+   192.168.1.100 isunfa.com
+
+   ```
+
+   **注意**: 如果需要啟用其他服務 (faith, aich)，可以添加對應的域名：
 
    ```
    192.168.1.100 isunfa.com aich.isunfa.com faith.isunfa.com
@@ -430,8 +457,6 @@ FAITH_SERVER_NAME=faith.isunfa.com
 
    ```
    ping <ISUNFA_DOMAIN>
-   ping <AICH_DOMAIN>
-   ping <FAITH_DOMAIN>
 
    ```
 
@@ -449,34 +474,111 @@ FAITH_SERVER_NAME=faith.isunfa.com
 透過 ofelia 在 docker container 裡執行 cron job，依照 GitHub branch 自動更新 docker container 的服務
 
 1. 填寫自動更新腳本的參數
-   - 填寫 `isunfa/.env.isunfa`, `faith/.env.faith`, `aich/.env.aich` 用於自動更新 `check-update.sh` 的參數
+   - 填寫 `isunfa/.env.isunfa` 用於自動更新 `check-update.sh` 的參數
+   - 如需啟用其他服務，可填寫 `faith/.env.faith`, `aich/.env.aich` 對應的參數
 2. 填寫 config.ini
    - 填寫 `ofelia/config.ini` 用於自動更新的參數
 
 ## 啟動 docker compose
 
 ```bash
+# 啟動目前的服務
+docker compose up -d
+
+# 如需啟用 AI 相關服務，需先取消註解 docker-compose.yml 中的相關服務，然後使用：
 # 使用 GPU
-docker compose -f docker-compose.yml -f docker-compose.gpu.yml up -d
+# docker compose -f docker-compose.yml -f docker-compose.gpu.yml up -d
 
 # 使用 CPU
-docker compose -f docker-compose.yml -f docker-compose.cpu.yml up -d
+# docker compose -f docker-compose.yml -f docker-compose.cpu.yml up -d
 ```
 
-## 驗證是否成功啟動
+
+## IPFS 啟動配置問題排除
+
+如果遇到 IPFS 容器無法正常啟動的問題，可能需要手動配置以下設定：
+
+**因應[kubo v0.37.0](https://github.com/ipfs/kubo/releases?utm_source=chatgpt.com#-autoconf-complete-control-over-network-defaults) 更新，需要手動配置以下設定：**
+1. AutoConf URL 衝突錯誤：無法在私有網路上使用預設的 mainnet URL
+2. 'auto' 佔位符配置錯誤：當 AutoConf 被停用時，無法使用 'auto' 佔位符
+
+**解決步驟：**
+
+0. 暫停 IPFS 容器
+```bash
+docker stop ipfs-node
+```
+
+1. 停用 AutoConf 功能 & URL 清空
+```bash
+docker run --rm -v isunfa_ipfs_data:/data/ipfs ipfs/kubo:latest \
+  config --json AutoConf.Enabled false
+docker run --rm -v isunfa_ipfs_data:/data/ipfs ipfs/kubo:latest \
+  config AutoConf.URL ""
+```
+
+2. 移除 'auto' 佔位符配置
+```bash
+# 關鍵：把所有 'auto' 佔位移除或改成明確值
+docker run --rm -v isunfa_ipfs_data:/data/ipfs ipfs/kubo:latest \
+  config --json Bootstrap '[]'
+docker run --rm -v isunfa_ipfs_data:/data/ipfs ipfs/kubo:latest \
+  config --json DNS.Resolvers '{}'
+docker run --rm -v isunfa_ipfs_data:/data/ipfs ipfs/kubo:latest \
+  config --json Routing.DelegatedRouters '[]'
+docker run --rm -v isunfa_ipfs_data:/data/ipfs ipfs/kubo:latest \
+  config --json Ipns.DelegatedPublishers '[]'
+
+# 設定路由類型為 dhtclient
+docker run --rm -v isunfa_ipfs_data:/data/ipfs ipfs/kubo:latest \
+config Routing.Type dhtclient
+```
+
+3. 驗證配置是否正確
+```bash
+# 檢查是否還有 'auto' 佔位符
+docker run --rm -v isunfa_ipfs_data:/data/ipfs ipfs/kubo:latest \
+config show | grep -n '"auto"' || echo "OK: 沒有 'auto' 佔位符"
+```
+
+4. 繼續啟動服務
+```bash
+docker compose up -d
+```
+
+**注意事項：**
+- 這些配置變更適用於私有網路環境
+
+## 驗證是否成功啟動主服務 isunfa
 
 - 透過瀏覽器訪問 `<ISUNFA_DOMAIN>`，如果能登入、上傳圖片、建立傳票、產生報表，則服務啟動成功
 
-### 檢查是否成功使用 GPU （可選）
+### 檢查服務狀態
+
+1. 檢查所有容器的運行狀態
+
+```bash
+# 查看所有 container 的狀態
+docker compose ps
+
+# 查看所有 container 的資源使用情況
+docker stats
+
+# 查看特定服務的 log
+docker compose logs isunfa
+docker compose logs nginx
+docker compose logs postgres
+```
+
+### 檢查是否成功使用 GPU （可選，需先啟用 AI 服務）
+
+**注意**: 以下步驟僅在取消註解並啟用 ollama 等 AI 服務後適用。
 
 1. 檢查 ollama container 的運行狀態
 
 ```bash
 # 查看 ollama container 的 log
 docker compose logs ollama
-
-# 查看所有 container 的資源使用情況
-docker stats
 ```
 
 2. 監控 GPU 使用狀況
@@ -511,6 +613,17 @@ docker compose -f docker-compose.yml -f docker-compose.gpu.yml up -d
 在更新 `.env` 之後，需要重啟單一容器，例如更新 isunfa 容器：
 
 ```bash
+# 重啟 isunfa 服務
+docker compose up -d --no-deps isunfa
+
+# 重啟其他服務
+docker compose up -d --no-deps nginx
+docker compose up -d --no-deps postgres
+```
+
+如果啟用了 AI 相關服務：
+
+```bash
 # 使用 GPU
 docker compose -f docker-compose.yml -f docker-compose.gpu.yml up -d --no-deps isunfa
 
@@ -518,21 +631,23 @@ docker compose -f docker-compose.yml -f docker-compose.gpu.yml up -d --no-deps i
 docker compose -f docker-compose.yml -f docker-compose.cpu.yml up -d --no-deps isunfa
 ```
 
-- `-f docker-compose.yml -f docker-compose.gpu.yml`：指定要使用的 Docker Compose 配置檔案。
-
 - `up -d`：在後台啟動或重新啟動服務。
-
-- `--no-deps`：不影響 isunfa 服務的相依服務，只重新啟動 isunfa。
-
+- `--no-deps`：不影響服務的相依服務，只重新啟動指定的服務。
 - `isunfa`：指定要重新啟動的服務名稱，依照 docker-compose.yml 裡的 service name 填寫。
 
 ### 更新單一服務的內容
 
-在 docker 啟動階段，如果 `app/` 資料夾有東西，則不會重新 clone Github repo，需要手動刪除 `app/` 資料夾之後，重啟 docker compose 才會重新 clone，例如更新 aich 的程式碼：
+在 docker 啟動階段，如果 `app/` 資料夾有東西，則不會重新 clone Github repo，需要手動刪除 `app/` 資料夾之後，重啟 docker compose 才會重新 clone，例如更新 isunfa 的程式碼：
 
 如果需要切換不同 git branch 測試，在測試完畢後需刪除 `app/` 資料夾，才能讓自動部署成功更新至對應 branch 最新的 git head
 
 ```bash
+# 更新 isunfa 服務
+docker compose down
+sudo rm -rf isunfa/app
+docker compose up -d
+
+# 更新已停用的服務 (如 aich)，需先啟用相關服務
 docker compose down
 sudo rm -rf aich/app
 docker compose -f docker-compose.yml -f docker-compose.gpu.yml up -d
@@ -732,9 +847,13 @@ du -sh file_or_directory
 ## 完成以上遷移後，在新的主機上運行 docker compose 啟動服務
 
 ```bash
+# 啟動目前的服務 (isunfa, postgres, nginx, ofelia)
+docker compose up -d
+
+# 如需啟用 AI 相關服務，需先取消註解 docker-compose.yml 中的相關服務，然後使用：
 # 使用 GPU
-docker compose -f docker-compose.yml -f docker-compose.gpu.yml up -d
+# docker compose -f docker-compose.yml -f docker-compose.gpu.yml up -d
 
 # 使用 CPU
-docker compose -f docker-compose.yml -f docker-compose.cpu.yml up -d
+# docker compose -f docker-compose.yml -f docker-compose.cpu.yml up -d
 ```
