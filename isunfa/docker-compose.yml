@@ -33,6 +33,8 @@ services:
     depends_on:
       postgres:
         condition: service_started
+      ipfs-node:
+        condition: service_started
     deploy:
       resources:
         limits:

@@ -16,7 +16,8 @@ Table of Contents
   - [設置 domain](#設置-domain)
   - [自動更新 docker container 裡的服務](#自動更新-docker-container-裡的服務)
   - [啟動 docker compose](#啟動-docker-compose)
-  - [驗證是否成功啟動](#驗證是否成功啟動)
+  - [IPFS 啟動配置問題排除](#ipfs-啟動配置問題排除)
+  - [驗證是否成功啟動主服務 isunfa](#驗證是否成功啟動主服務-isunfa)
     - [檢查服務狀態](#檢查服務狀態)
     - [檢查是否成功使用 GPU （可選，需先啟用 AI 服務）](#檢查是否成功使用-gpu-可選需先啟用-ai-服務)
   - [其他處理情境](#其他處理情境)
@@ -341,6 +342,7 @@ cp ./.env.sample ./.env
 cp ./isunfa/.env.isunfa.sample ./isunfa/.env.isunfa
 cp ./nginx/.env.nginx.sample ./nginx/.env.nginx
 cp ./postgres/.env.postgres.sample ./postgres/.env.postgres
+cp ./ipfs/.env.ipfs.sample ./ipfs/.env.ipfs
 
 # 已停用服務的環境變數檔案 (如需啟用可複製)
 cp ./faith/.env.faith.sample ./faith/.env.faith
@@ -372,6 +374,15 @@ ISUNFA_SERVER_NAME=<ISUNFA_DOMAIN>
 ```
 ISUNFA_SERVER_NAME=isunfa.com
 ```
+
+- .env.ipfs 特別注意的欄位
+
+```
+IPFS_SWARM_PORT=4001    # IPFS P2P 通訊 port
+IPFS_API_PORT=5001      # IPFS API 服務 port
+IPFS_GATEWAY_PORT=8080  # IPFS HTTP Gateway port
+```
+
 
 **已停用服務的配置 (如需啟用可參考)：**
 
@@ -471,7 +482,7 @@ FAITH_SERVER_NAME=<FAITH_DOMAIN>
 ## 啟動 docker compose
 
 ```bash
-# 啟動目前的服務 (isunfa, postgres, nginx, ofelia)
+# 啟動目前的服務
 docker compose up -d
 
 # 如需啟用 AI 相關服務，需先取消註解 docker-compose.yml 中的相關服務，然後使用：
@@ -482,7 +493,74 @@ docker compose up -d
 # docker compose -f docker-compose.yml -f docker-compose.cpu.yml up -d
 ```
 
-## 驗證是否成功啟動
+
+## IPFS 啟動配置問題排除
+
+如果遇到 IPFS 容器無法正常啟動的問題，可能需要手動配置以下設定：
+
+**因應[kubo v0.37.0](https://github.com/ipfs/kubo/releases?utm_source=chatgpt.com#-autoconf-complete-control-over-network-defaults) 更新，需要手動配置以下設定：**
+1. AutoConf URL 衝突錯誤：無法在私有網路上使用預設的 mainnet URL
+2. 'auto' 佔位符配置錯誤：當 AutoConf 被停用時，無法使用 'auto' 佔位符
+
+**解決步驟：**
+
+1. 停用 AutoConf 功能 & URL 清空
+```bash
+docker run --rm -v isunfa_ipfs_data:/data/ipfs ipfs/kubo:latest \
+  config --json AutoConf.Enabled false
+docker run --rm -v isunfa_ipfs_data:/data/ipfs ipfs/kubo:latest \
+  config AutoConf.URL ""
+```
+
+2. 移除 'auto' 佔位符配置
+```bash
+# 關鍵：把所有 'auto' 佔位移除或改成明確值
+docker run --rm -v isunfa_ipfs_data:/data/ipfs ipfs/kubo:latest \
+  config --json Bootstrap '[]'
+docker run --rm -v isunfa_ipfs_data:/data/ipfs ipfs/kubo:latest \
+  config --json DNS.Resolvers '{}'
+docker run --rm -v isunfa_ipfs_data:/data/ipfs ipfs/kubo:latest \
+  config --json Routing.DelegatedRouters '[]'
+docker run --rm -v isunfa_ipfs_data:/data/ipfs ipfs/kubo:latest \
+  config --json Ipns.DelegatedPublishers '[]'
+
+# 設定路由類型為 dhtclient
+docker run --rm -v isunfa_ipfs_data:/data/ipfs ipfs/kubo:latest \
+config Routing.Type dhtclient
+```
+
+3. 驗證配置是否正確
+```bash
+# 檢查是否還有 'auto' 佔位符
+docker run --rm -v isunfa_ipfs_data:/data/ipfs ipfs/kubo:latest \
+config show | grep -n '"auto"' || echo "OK: 沒有 'auto' 佔位符"
+```
+
+**注意事項：**
+- 執行以上命令前請確保 IPFS 容器已停止
+- 這些配置變更適用於私有網路環境
+- 如果問題持續存在，可以刪除 IPFS 數據卷重新初始化：
+```bash
+docker compose down
+docker volume rm isunfa_ipfs_data
+docker compose up -d
+```
+
+- 檢查是否把 auto 都移除成功
+
+   ```bash
+   docker run --rm -v isunfa_ipfs_data:/data/ipfs ipfs/kubo:latest \
+     config show | grep -n '"auto"' || echo "OK: no 'auto' placeholders"
+   ```
+
+- 啟動 swarm-storage-ipfs container 並查看 log
+
+   ```bash
+   docker start swarm-storage-ipfs
+   docker logs --tail=80 -f swarm-storage-ipfs
+   ```
+
+## 驗證是否成功啟動主服務 isunfa
 
 - 透過瀏覽器訪問 `<ISUNFA_DOMAIN>`，如果能登入、上傳圖片、建立傳票、產生報表，則服務啟動成功
 
