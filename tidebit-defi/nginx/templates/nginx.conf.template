@@ -1,0 +1,61 @@
+# Frontend Service
+server {
+    listen ${NGINX_PORT};
+    server_name ${TIDEBIT_DEFI_SERVER_NAME};
+
+    location / {
+        proxy_pass ${TIDEBIT_DEFI_DOCKER_URL};
+        proxy_set_header Host $host;
+        proxy_set_header X-Real-IP $remote_addr;
+        proxy_set_header X-Forwarded-For $proxy_add_x_forwarded_for;
+        proxy_set_header X-Forwarded-Proto $scheme;
+
+        add_header 'Access-Control-Allow-Origin' '*';
+        add_header 'Access-Control-Allow-Methods' 'GET, POST, OPTIONS';
+        add_header 'Access-Control-Allow-Headers' 'Origin, X-Requested-With, Content-Type, Accept';
+    }
+}
+
+# Backend Service
+server {
+    listen ${NGINX_PORT};
+    server_name ${TBD_BACKEND_SERVER_NAME};
+
+    location / {
+        proxy_pass ${TBD_BACKEND_DOCKER_URL};
+        proxy_set_header Host $host;
+        proxy_set_header X-Real-IP $remote_addr;
+        proxy_set_header X-Forwarded-For $proxy_add_x_forwarded_for;
+        proxy_set_header X-Forwarded-Proto $scheme;
+
+    }
+}
+
+server {
+    listen ${NGINX_PORT};
+    server_name ${AUTO_TRADE_SERVER_NAME};
+
+    location / {
+        proxy_pass ${AUTO_TRADE_DOCKER_URL};
+        proxy_set_header Host $host;
+        proxy_set_header X-Real-IP $remote_addr;
+        proxy_set_header X-Forwarded-For $proxy_add_x_forwarded_for;
+        proxy_set_header X-Forwarded-Proto $scheme;
+
+    }
+}
+
+# Pusher Service
+server {
+    listen ${NGINX_PORT};
+    server_name ${PUSHER_SERVER_NAME};
+
+    location / {
+        proxy_pass http://pusher:5558;
+        proxy_set_header Host $host;
+        proxy_set_header X-Real-IP $remote_addr;
+        proxy_set_header X-Forwarded-For $proxy_add_x_forwarded_for;
+        proxy_set_header X-Forwarded-Proto $scheme;
+
+    }
+}

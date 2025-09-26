@@ -1,0 +1,62 @@
+server {
+    listen ${NGINX_PORT};
+    server_name ${ISUNFA_SERVER_NAME};
+
+    location / {
+        proxy_pass ${ISUNFA_DOCKER_URL};
+        proxy_set_header Host $host;
+        proxy_set_header X-Real-IP $remote_addr;
+        proxy_set_header X-Forwarded-For $proxy_add_x_forwarded_for;
+        proxy_set_header X-Forwarded-Proto $scheme;
+        proxy_set_header Cookie $http_cookie;
+        proxy_cache_bypass $http_upgrade;
+        proxy_buffering off; # 禁用緩衝, 新增此行 by Emiliy
+        proxy_set_header Set-Cookie $http_set_cookie; # 新增此行 by Emiliy
+    }
+
+
+    # Info: (20241217 - Murky) file api 可以有比較大的上限
+    location /api/v2/file {
+
+        # Info: (20241217 - Murky) 調整單次圖片最大檔案上限
+        client_max_body_size 4M;
+
+        proxy_pass ${ISUNFA_DOCKER_URL};
+        proxy_set_header Host $host;
+        proxy_set_header X-Real-IP $remote_addr;
+        proxy_set_header X-Forwarded-For $proxy_add_x_forwarded_for;
+        proxy_set_header X-Forwarded-Proto $scheme;
+        proxy_set_header Cookie $http_cookie;
+        proxy_cache_bypass $http_upgrade;
+    }
+}
+
+# server {
+#     listen ${NGINX_PORT};
+#     server_name ${AICH_SERVER_NAME};
+# 
+#     location / {
+#         proxy_pass ${AICH_DOCKER_URL};
+#         proxy_buffering off;
+#         proxy_set_header Host $host;
+#         proxy_set_header X-Real-IP $remote_addr;
+#         proxy_set_header X-Forwarded-For $proxy_add_x_forwarded_for;
+#         proxy_set_header X-Forwarded-Proto $scheme;
+#         proxy_set_header Cookie $http_cookie;
+#         proxy_cache_bypass $http_upgrade;
+#     }
+# }
+
+# server {
+#     listen ${NGINX_PORT};
+#     server_name ${FAITH_SERVER_NAME};
+#     location / {
+#         proxy_pass ${FAITH_DOCKER_URL};
+#         proxy_set_header Host $host;
+#         proxy_set_header X-Real-IP $remote_addr;
+#         proxy_set_header X-Forwarded-For $proxy_add_x_forwarded_for;
+#         proxy_set_header X-Forwarded-Proto $scheme;
+#         proxy_set_header Cookie $http_cookie;
+#         proxy_cache_bypass $http_upgrade;
+#     }
+# }

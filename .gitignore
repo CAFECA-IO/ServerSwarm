@@ -1,0 +1,28 @@
+.env*
+**/*.log
+# Info: (20240827 - Jacky) Do not ignore specific sample files, such as .env.aich.sample
+!.env*.sample
+isunfa/ollama/id_*
+isunfa/ollama/models
+isunfa/qdrant/qdrant_data
+isunfa/isunfa/app
+isunfa/aich/app
+isunfa/faith/app
+
+# Info: (20240827 - Jacky) Ignore below files in the ipfs folder
+ipfs/ipfs_data
+ipfs/export
+
+# Info: (20240827 - Jacky) Ignore below files in the TideBit-Defi folder
+tidebit-defi/tidebit-defi/app
+tidebit-defi/tbd-backend/app
+tidebit-defi/mongodb/data
+
+# Info: (20240827 - Jacky) Ignore below files in the baifa folder
+
+baifa/baifa/app
+baifa/baifa-web-crawling/app
+
+# Info: (20240916 - Jacky) Ignore npm related build files
+node_modules
+package-lock.json

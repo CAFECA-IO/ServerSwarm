@@ -1,0 +1,125 @@
+services:
+  nginx:
+    image: nginx:1.26.2
+    ports:
+      - "80:80"
+      - "443:443"
+    volumes:
+      - ./nginx/templates:/etc/nginx/templates 
+    env_file:
+      - ./nginx/.env.nginx
+    depends_on:
+      - tidebit-defi-backend
+      - tidebit-defi-frontend
+      - pusher
+    deploy:
+      resources:
+        limits:
+          memory: 256M
+
+  tidebit-defi-frontend:
+    image: node:18
+    volumes:
+      - ./tidebit-defi:/tidebit-defi
+    env_file:
+      - ./tidebit-defi/.env.tidebit-defi
+    environment:
+      - PORT=${TIDEBIT_DEFI_PORT}
+    expose:
+      - "${TIDEBIT_DEFI_PORT}"
+    depends_on:
+     - tidebit-defi-backend
+    command: >
+      sh -c "chmod +x /tidebit-defi/tidebit-defi-start.sh && /tidebit-defi/tidebit-defi-start.sh"
+    deploy:
+      resources:
+        limits:
+          memory: 4G
+  
+  auto-trade:
+    image: node:18
+    volumes:
+      - ./auto-trade:/auto-trade
+    env_file:
+      - ./auto-trade/.env.auto-trade
+    environment:
+      - PORT=${AUTO_TRADE_PORT}
+    expose:
+      - "${AUTO_TRADE_PORT}"
+    depends_on:
+      - tidebit-defi-backend
+    command: >
+      sh -c "chmod +x /auto-trade/auto-trade-start.sh && /auto-trade/auto-trade-start.sh"
+    deploy:
+      resources:
+        limits:
+          memory: 2G
+  
+  tidebit-defi-backend:
+    image: cafeca/tidebit-defi:backend-v0.8.1
+    volumes:
+      - ./tbd-backend:/tbd-backend
+    env_file:
+      - ./tbd-backend/.env.tbd-backend
+    environment:
+      - PORT=${TBD_BACKEND_PORT}
+    expose:
+      - "${TBD_BACKEND_PORT}"
+    depends_on:
+      - mongodb
+    deploy:
+      resources:
+        limits:
+          memory: 3G
+
+  pusher:
+    image: edgurgel/poxa-automated:v1.3.0
+    environment:
+      - PORT=${PUSHER_PORT}
+    expose:
+      - "${PUSHER_PORT}"
+    depends_on:
+      - mongodb
+    deploy:
+      resources:
+        limits:
+          memory: 1G
+    
+  mongodb:
+    image: mongo:7
+    command: ["mongod", "--config", "/etc/mongod.conf", "--replSet", "rs0"]
+
+    expose:
+      - "${MONGODB_PORT}"
+    ports:
+      - "${MONGODB_PORT}:${MONGODB_PORT}"
+    volumes:
+      - ./mongodb/mongod.conf:/etc/mongod.conf
+      - ./mongodb/data:/data/db
+    healthcheck:
+      test: echo "try { rs.status() } catch (err) { rs.initiate({_id:'rs0',members:[{_id:0,host:'mongodb:27017'}]}) }" | mongosh --port 27017 --quiet
+      interval: 5s
+      timeout: 30s
+      start_period: 0s
+      start_interval: 1s
+      retries: 30
+    environment:
+      MONGO_INITDB_DATABASE: tidebit-defi
+    deploy:
+      resources:
+        limits:
+          memory: 2G
+
+  api-caller:
+    image: curlimages/curl:latest
+    user: root
+    volumes:
+      - ./api-caller:/api-caller
+    environment:
+      - AUTO_TRADE_PORT=${AUTO_TRADE_PORT}
+      - TBD_BACKEND_PORT=${TBD_BACKEND_PORT}
+    command: >
+      sh -c "chmod +x /api-caller/api-caller-start.sh && /api-caller/api-caller-start.sh"
+    depends_on:
+      - auto-trade
+    restart: "no"
