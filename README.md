@@ -1,5 +1,6 @@
 # ServerSwarm
+> v0.8.0
 
-cafeca micro service group
+CAFECA micro service group
 
-- [instruction of isunfa](./isunfa/README.md)
+- [iSunFA](./isunfa/README.md)
