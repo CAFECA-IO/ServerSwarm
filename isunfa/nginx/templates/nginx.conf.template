@@ -19,7 +19,7 @@ server {
     location /api/v2/file {
 
         # Info: (20241217 - Murky) 調整單次圖片最大檔案上限
-        client_max_body_size 4M;
+        client_max_body_size 20M;
 
         proxy_pass ${ISUNFA_DOCKER_URL};
         proxy_set_header Host $host;
