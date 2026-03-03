@@ -168,6 +168,13 @@ services:
       resources:
         limits:
           memory: 3G
+    healthcheck:
+      # Info: (20260303 - Luphia) 使用 ipfs id 指令來確認 API 是否已經啟動並能回應
+      test: ["CMD", "ipfs", "id"]
+      interval: 60s      # Info: (20260303 - Luphia) 每 60 秒檢查一次
+      timeout: 10s       # Info: (20260303 - Luphia) 超過 10 秒沒回應算失敗
+      retries: 5         # Info: (20260303 - Luphia) 失敗 5 次才宣告不健康
+      start_period: 60s  # Info: (20260303 - Luphia) 給它 60 秒緩衝啟動時間
 
   ofelia:
     image: mcuadros/ofelia:latest
