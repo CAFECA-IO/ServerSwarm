@@ -163,7 +163,30 @@ services:
       - ./ipfs/.env.ipfs
     environment:
       - IPFS_PROFILE=server
-    command: daemon --migrate=true --enable-pubsub-experiment
+    entrypoint: "" # Info: (20260303 - Luphia) 強制清除鏡像預設的 entrypoint
+    command: >
+      /bin/sh -c "
+      echo '正在修正目錄權限 (忽略 swarm.key 唯讀警告)...';
+      chown 1000:1000 /data/ipfs;
+      chown 1000:1000 /data/ipfs/config || true;
+
+      if [ ! -f /data/ipfs/config ]; then
+        echo 'Repo 不存在，正在初始化...';
+        su ipfs -s /bin/sh -c 'ipfs init --profile=server';
+      fi;
+
+      echo '正在清除所有 AutoConf 衝突設定...';
+      su ipfs -s /bin/sh -c '
+        ipfs config AutoConf.Enabled --json false &&
+        ipfs config Bootstrap --json \"[]\" &&
+        ipfs config DNS.Resolvers --json \"{}\" &&
+        ipfs config Routing.DelegatedRouters --json \"[]\" &&
+        ipfs config Ipns.DelegatedPublishers --json \"[]\"
+      ';
+
+      echo '配置完成，啟動 IPFS Daemon...';
+      exec /usr/local/bin/start_ipfs daemon --migrate=true --enable-pubsub-experiment
+      "
     deploy:
       resources:
         limits:
